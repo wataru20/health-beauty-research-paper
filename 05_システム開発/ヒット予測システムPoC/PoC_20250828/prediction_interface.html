@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>韓国→日本ヒット予測システム</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            min-height: 600px;
+        }
+
+        .input-section {
+            padding: 2rem;
+            background: #f8f9fa;
+            border-right: 1px solid #dee2e6;
+        }
+
+        .result-section {
+            padding: 2rem;
+            background: white;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .input-grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .input-group {
+            display: grid;
+            grid-template-columns: 1fr 100px;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .input-group label {
+            font-size: 0.9rem;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .input-group input {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+        }
+
+        .category-section {
+            margin-bottom: 2rem;
+        }
+
+        .category-title {
+            font-size: 1.1rem;
+            color: #667eea;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .predict-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .predict-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .predict-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .result-card {
+            background: #f8f9ff;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .result-card:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .probability-display {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .probability-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            position: relative;
+            background: conic-gradient(#667eea 0deg, #667eea var(--percentage), #e9ecef var(--percentage), #e9ecef 360deg);
+        }
+
+        .probability-inner {
+            width: 120px;
+            height: 120px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .probability-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .probability-label {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 0.2rem;
+        }
+
+        .confidence-bar {
+            background: #e9ecef;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ffc107, #28a745);
+            transition: width 0.5s ease;
+        }
+
+        .factors-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .factors-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .factors-list li:last-child {
+            border-bottom: none;
+        }
+
+        .risk-icon {
+            color: #dc3545;
+        }
+
+        .success-icon {
+            color: #28a745;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .spinner {
+            border: 4px solid #e9ecef;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            border-left: 4px solid #dc3545;
+        }
+
+        .sample-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .sample-btn {
+            padding: 0.3rem 0.8rem;
+            background: #e9ecef;
+            border: 1px solid #ddd;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s ease;
+        }
+
+        .sample-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+            
+            .input-section {
+                border-right: none;
+                border-bottom: 1px solid #dee2e6;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .input-group {
+                grid-template-columns: 1fr;
+                gap: 0.3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔮 韓国→日本ヒット予測システム</h1>
+            <p>美容・健康関連商品の日本市場でのヒット可能性を AI が予測します</p>
+        </div>
+        
+        <div class="content">
+            <div class="input-section">
+                <h2 class="section-title">📊 商品データ入力</h2>
+                
+                <div class="sample-buttons">
+                    <button class="sample-btn" onclick="loadSample('success')">成功事例</button>
+                    <button class="sample-btn" onclick="loadSample('failure')">失敗事例</button>
+                    <button class="sample-btn" onclick="clearForm()">クリア</button>
+                </div>
+                
+                <form id="predictionForm">
+                    <div class="category-section">
+                        <div class="category-title">🇰🇷 韓国YouTuber指標</div>
+                        <div class="input-grid">
+                            <div class="input-group">
+                                <label for="kr_youtuber_mention_count">言及動画数</label>
+                                <input type="number" id="kr_youtuber_mention_count" min="0" max="100" value="0">
+                            </div>
+                            <div class="input-group">
+                                <label for="kr_total_views">総再生数（万回）</label>
+                                <input type="number" id="kr_total_views" min="0" max="2000" value="0">
+                            </div>
+                            <div class="input-group">
+                                <label for="kr_total_likes">総いいね数（千回）</label>
+                                <input type="number" id="kr_total_likes" min="0" max="500" value="0">
+                            </div>
+                            <div class="input-group">
+                                <label for="kr_total_comments">総コメント数（千回）</label>
+                                <input type="number" id="kr_total_comments" min="0" max="100" value="0">
+                            </div>
+                            <div class="input-group">
+                                <label for="kr_avg_subscriber_count">平均登録者数（万人）</label>
+                                <input type="number" id="kr_avg_subscriber_count" min="0" max="200" value="0">
+                            </div>
+                            <div class="input-group">
+                                <label for="kr_influencer_tier_score">インフルエンサー度（1-10）</label>
+                                <input type="number" id="kr_influencer_tier_score" min="1" max="10" value="5">
+                            </div>
+                            <div class="input-group">
+                                <label for="kr_avg_engagement_rate">エンゲージメント率（%）</label>
+                                <input type="number" id="kr_avg_engagement_rate" min="0" max="30" step="0.1" value="0">
+                            </div>
+                            <div class="input-group">
+                                <label for="kr_mention_frequency">言及頻度（回/月）</label>
+                                <input type="number" id="kr_mention_frequency" min="0" max="20" value="0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="category-section">
+                        <div class="category-title">🇯🇵 日本YouTuber指標</div>
+                        <div class="input-grid">
+                            <div class="input-group">
+                                <label for="jp_youtuber_mention_count">言及動画数</label>
+                                <input type="number" id="jp_youtuber_mention_count" min="0" max="100" value="0">
+                            </div>
+                            <div class="input-group">
+                                <label for="jp_total_views">総再生数（万回）</label>
+                                <input type="number" id="jp_total_views" min="0" max="2000" value="0">
+                            </div>
+                            <div class="input-group">
+                                <label for="jp_total_likes">総いいね数（千回）</label>
+                                <input type="number" id="jp_total_likes" min="0" max="500" value="0">
+                            </div>
+                            <div class="input-group">
+                                <label for="jp_total_comments">総コメント数（千回）</label>
+                                <input type="number" id="jp_total_comments" min="0" max="100" value="0">
+                            </div>
+                            <div class="input-group">
+                                <label for="jp_kr_time_lag_days">韓国→日本遅延日数</label>
+                                <input type="number" id="jp_kr_time_lag_days" min="0" max="500" value="0">
+                            </div>
+                            <div class="input-group">
+                                <label for="jp_adoption_speed">拡散速度（言及数/週）</label>
+                                <input type="number" id="jp_adoption_speed" min="0" max="10" step="0.1" value="0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="category-section">
+                        <div class="category-title">🎌 文化・市場要因</div>
+                        <div class="input-grid">
+                            <div class="input-group">
+                                <label for="cultural_acceptance_score">日本文化適合度（1-10）</label>
+                                <input type="number" id="cultural_acceptance_score" min="1" max="10" value="5">
+                            </div>
+                            <div class="input-group">
+                                <label for="ingredient_familiarity">成分認知度（1-10）</label>
+                                <input type="number" id="ingredient_familiarity" min="1" max="10" value="5">
+                            </div>
+                            <div class="input-group">
+                                <label for="cultural_taboo_risk">タブーリスク（1-10）</label>
+                                <input type="number" id="cultural_taboo_risk" min="1" max="10" value="5">
+                            </div>
+                            <div class="input-group">
+                                <label for="price_accessibility">価格アクセシビリティ（1-10）</label>
+                                <input type="number" id="price_accessibility" min="1" max="10" value="5">
+                            </div>
+                            <div class="input-group">
+                                <label for="availability_score">入手しやすさ（1-10）</label>
+                                <input type="number" id="availability_score" min="1" max="10" value="5">
+                            </div>
+                            <div class="input-group">
+                                <label for="regulatory_barrier">規制障壁（1-10）</label>
+                                <input type="number" id="regulatory_barrier" min="1" max="10" value="5">
+                            </div>
+                            <div class="input-group">
+                                <label for="seasonal_relevance">季節適合性（1-10）</label>
+                                <input type="number" id="seasonal_relevance" min="1" max="10" value="5">
+                            </div>
+                            <div class="input-group">
+                                <label for="market_saturation">市場飽和度（1-10）</label>
+                                <input type="number" id="market_saturation" min="1" max="10" value="5">
+                            </div>
+                            <div class="input-group">
+                                <label for="similar_product_success_rate">類似商品成功率（0-1）</label>
+                                <input type="number" id="similar_product_success_rate" min="0" max="1" step="0.1" value="0.5">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="predict-btn" id="predictBtn">
+                        🔮 ヒット確率を予測する
+                    </button>
+                </form>
+            </div>
+
+            <div class="result-section">
+                <h2 class="section-title">📈 予測結果</h2>
+                
+                <div id="loadingDiv" class="loading">
+                    <div class="spinner"></div>
+                    <p>AI が分析中...</p>
+                </div>
+
+                <div id="errorDiv" style="display: none;"></div>
+
+                <div id="resultDiv" style="display: none;">
+                    <div class="result-card">
+                        <div class="probability-display">
+                            <div class="probability-circle" id="probabilityCircle">
+                                <div class="probability-inner">
+                                    <div class="probability-number" id="probabilityNumber">-</div>
+                                    <div class="probability-label">ヒット確率</div>
+                                </div>
+                            </div>
+                            <div>
+                                <strong>信頼度: </strong>
+                                <span id="confidenceScore">-</span>/10
+                                <div class="confidence-bar">
+                                    <div class="confidence-fill" id="confidenceFill" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="result-card">
+                        <h3 style="color: #dc3545; margin-bottom: 1rem;">⚠️ リスク要因</h3>
+                        <ul class="factors-list" id="riskFactors"></ul>
+                    </div>
+
+                    <div class="result-card">
+                        <h3 style="color: #28a745; margin-bottom: 1rem;">✅ 成功要因</h3>
+                        <ul class="factors-list" id="successDrivers"></ul>
+                    </div>
+                </div>
+
+                <div id="initialMessage" class="result-card" style="text-align: center; color: #666;">
+                    <p>左側のフォームに商品データを入力して<br>「ヒット確率を予測する」ボタンを押してください</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000';
+
+        // サンプルデータ
+        const sampleData = {
+            success: {
+                kr_youtuber_mention_count: 48,
+                kr_total_views: 720,
+                kr_total_likes: 105,
+                kr_total_comments: 32,
+                kr_avg_subscriber_count: 82,
+                kr_influencer_tier_score: 8,
+                kr_avg_engagement_rate: 13.2,
+                kr_mention_frequency: 9,
+                jp_youtuber_mention_count: 35,
+                jp_total_views: 520,
+                jp_total_likes: 75,
+                jp_total_comments: 25,
+                jp_kr_time_lag_days: 150,
+                jp_adoption_speed: 4,
+                cultural_acceptance_score: 8,
+                ingredient_familiarity: 7,
+                cultural_taboo_risk: 2,
+                price_accessibility: 7,
+                availability_score: 8,
+                regulatory_barrier: 2,
+                seasonal_relevance: 7,
+                market_saturation: 5,
+                similar_product_success_rate: 0.75
+            },
+            failure: {
+                kr_youtuber_mention_count: 24,
+                kr_total_views: 180,
+                kr_total_likes: 27,
+                kr_total_comments: 8,
+                kr_avg_subscriber_count: 45,
+                kr_influencer_tier_score: 5,
+                kr_avg_engagement_rate: 8.0,
+                kr_mention_frequency: 3,
+                jp_youtuber_mention_count: 3,
+                jp_total_views: 25,
+                jp_total_likes: 3,
+                jp_total_comments: 1,
+                jp_kr_time_lag_days: 420,
+                jp_adoption_speed: 0.3,
+                cultural_acceptance_score: 2,
+                ingredient_familiarity: 1,
+                cultural_taboo_risk: 9,
+                price_accessibility: 3,
+                availability_score: 2,
+                regulatory_barrier: 7,
+                seasonal_relevance: 5,
+                market_saturation: 1,
+                similar_product_success_rate: 0.05
+            }
+        };
+
+        function loadSample(type) {
+            const data = sampleData[type];
+            for (const [key, value] of Object.entries(data)) {
+                const element = document.getElementById(key);
+                if (element) {
+                    element.value = value;
+                }
+            }
+        }
+
+        function clearForm() {
+            const form = document.getElementById('predictionForm');
+            const inputs = form.querySelectorAll('input[type="number"]');
+            inputs.forEach(input => {
+                if (input.id.includes('_score') || input.id.includes('_familiarity') || input.id.includes('_tier_score')) {
+                    input.value = 5;
+                } else if (input.id === 'similar_product_success_rate') {
+                    input.value = 0.5;
+                } else {
+                    input.value = 0;
+                }
+            });
+        }
+
+        function showLoading() {
+            document.getElementById('loadingDiv').style.display = 'block';
+            document.getElementById('resultDiv').style.display = 'none';
+            document.getElementById('errorDiv').style.display = 'none';
+            document.getElementById('initialMessage').style.display = 'none';
+            document.getElementById('predictBtn').disabled = true;
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingDiv').style.display = 'none';
+            document.getElementById('predictBtn').disabled = false;
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorDiv');
+            errorDiv.innerHTML = `<div class="error-message">${message}</div>`;
+            errorDiv.style.display = 'block';
+            document.getElementById('resultDiv').style.display = 'none';
+        }
+
+        function showResults(data) {
+            document.getElementById('errorDiv').style.display = 'none';
+            document.getElementById('initialMessage').style.display = 'none';
+            
+            // 確率表示
+            const probability = Math.round(data.hit_probability);
+            document.getElementById('probabilityNumber').textContent = `${probability}%`;
+            
+            // 円グラフの更新
+            const circle = document.getElementById('probabilityCircle');
+            const percentage = (probability / 100) * 360;
+            circle.style.setProperty('--percentage', `${percentage}deg`);
+            
+            // 信頼度表示
+            const confidence = Math.round(data.confidence_score * 10) / 10;
+            document.getElementById('confidenceScore').textContent = confidence;
+            document.getElementById('confidenceFill').style.width = `${confidence * 10}%`;
+            
+            // リスク要因
+            const riskList = document.getElementById('riskFactors');
+            riskList.innerHTML = '';
+            if (data.risk_factors && data.risk_factors.length > 0) {
+                data.risk_factors.forEach(factor => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<span class="risk-icon">⚠️</span> ${factor}`;
+                    riskList.appendChild(li);
+                });
+            } else {
+                const li = document.createElement('li');
+                li.innerHTML = '<span style="color: #666;">特に大きなリスク要因は検出されませんでした</span>';
+                riskList.appendChild(li);
+            }
+            
+            // 成功要因
+            const successList = document.getElementById('successDrivers');
+            successList.innerHTML = '';
+            if (data.success_drivers && data.success_drivers.length > 0) {
+                data.success_drivers.forEach(driver => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<span class="success-icon">✅</span> ${driver}`;
+                    successList.appendChild(li);
+                });
+            } else {
+                const li = document.createElement('li');
+                li.innerHTML = '<span style="color: #666;">特に強い成功要因は検出されませんでした</span>';
+                successList.appendChild(li);
+            }
+            
+            document.getElementById('resultDiv').style.display = 'block';
+        }
+
+        async function predict(formData) {
+            try {
+                const response = await fetch(`${API_BASE}/predict`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                
+                return data;
+            } catch (error) {
+                throw error;
+            }
+        }
+
+        document.getElementById('predictionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            showLoading();
+            
+            try {
+                const formData = new FormData(e.target);
+                const data = {};
+                
+                // フォームデータを数値に変換
+                for (const [key, value] of formData.entries()) {
+                    data[key] = parseFloat(value) || 0;
+                }
+                
+                // フォーム以外の要素も取得
+                const inputs = e.target.querySelectorAll('input[type="number"]');
+                inputs.forEach(input => {
+                    data[input.id] = parseFloat(input.value) || 0;
+                });
+                
+                console.log('送信データ:', data);
+                
+                const result = await predict(data);
+                showResults(result);
+                
+            } catch (error) {
+                console.error('予測エラー:', error);
+                if (error.message.includes('Failed to fetch')) {
+                    showError('APIサーバーに接続できません。predictor.py が起動しているか確認してください。');
+                } else {
+                    showError(`予測中にエラーが発生しました: ${error.message}`);
+                }
+            } finally {
+                hideLoading();
+            }
+        });
+
+        // 初期状態でサンプルデータを読み込み
+        loadSample('success');
+    </script>
+</body>
+</html>

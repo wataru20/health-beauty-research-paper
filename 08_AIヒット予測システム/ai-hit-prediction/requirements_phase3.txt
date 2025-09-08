@@ -1,0 +1,40 @@
+# Phase 3 Additional Requirements
+# Install with: pip install -r requirements_phase3.txt
+
+# SHAP for model explanation
+shap==0.42.1
+
+# Web UI framework
+streamlit==1.28.1
+plotly==5.17.0
+
+# Advanced optimization
+optuna==3.4.0
+
+# Visualization enhancements
+matplotlib==3.7.2
+seaborn==0.12.2
+altair==5.1.2
+
+# Dashboard components
+streamlit-aggrid==0.3.4
+streamlit-option-menu==0.3.6
+streamlit-extras==0.3.4
+
+# Performance monitoring
+watchdog==3.0.0
+
+# Caching and session management
+streamlit-autorefresh==0.0.1
+
+# Export functionality
+xlsxwriter==3.1.9
+reportlab==4.0.6
+
+# Additional ML tools
+xgboost==2.0.0  # For comparison with Random Forest
+lightgbm==4.1.0  # Alternative model
+
+# Interactive visualizations
+bokeh==3.3.0
+hvplot==0.9.0

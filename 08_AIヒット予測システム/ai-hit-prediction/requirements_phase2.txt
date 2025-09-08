@@ -1,0 +1,36 @@
+# Phase 2 Additional Requirements
+# Install with: pip install -r requirements_phase2.txt
+
+# News API client
+newsapi-python==0.2.7
+
+# Data processing and analysis
+pandas==2.1.0
+numpy==1.25.0
+
+# Natural Language Processing
+textblob==0.17.1
+nltk==3.8.1
+
+# Date handling
+python-dateutil==2.8.2
+
+# API rate limiting
+ratelimit==2.2.1
+
+# Data validation
+pydantic==2.4.0
+
+# Progress bars
+tqdm==4.66.1
+
+# Scheduling (for future batch processing)
+schedule==1.2.0
+
+# Web scraping (backup for when API is unavailable)
+beautifulsoup4==4.12.2
+lxml==4.9.3
+
+# Database (for data persistence)
+sqlalchemy==2.0.21
+sqlite3  # Built-in, no installation needed

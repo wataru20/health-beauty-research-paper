@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FM様向け提案プロジェクト スケジュール計画</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header .subtitle {
+            color: #7f8c8d;
+            font-size: 1.2em;
+            margin-bottom: 20px;
+        }
+
+        .header .date {
+            background: #3498db;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            display: inline-block;
+            font-weight: 600;
+        }
+
+        .section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .section h2 {
+            color: #2c3e50;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #3498db;
+            display: inline-block;
+        }
+
+        .section h3 {
+            color: #34495e;
+            font-size: 1.4em;
+            margin: 25px 0 15px 0;
+        }
+
+        .milestone-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .milestone-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .milestone-card h4 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+
+        .milestone-date {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .milestone-desc {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .wbs-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .wbs-table th {
+            background: #34495e;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .wbs-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .wbs-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .wbs-table tr:hover {
+            background: #e3f2fd;
+        }
+
+        .owner-tag {
+            background: #3498db;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+
+        .risk-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .risk-card {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .risk-card h4 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .action-list {
+            list-style: none;
+            margin: 20px 0;
+        }
+
+        .action-list li {
+            background: #e8f5e8;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #27ae60;
+        }
+
+        .action-date {
+            font-weight: bold;
+            color: #27ae60;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin: 30px 0;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .info-box h4 {
+            color: #1976d2;
+            margin-bottom: 10px;
+        }
+
+        .role-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .role-card {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .role-card h4 {
+            color: #495057;
+            margin-bottom: 10px;
+        }
+
+        .role-card ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .role-card li {
+            padding: 5px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .role-card li:before {
+            content: "•";
+            color: #007bff;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+            .section {
+                box-shadow: none;
+                border: 1px solid #ddd;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            .header h1 {
+                font-size: 2em;
+            }
+            .wbs-table {
+                font-size: 0.9em;
+            }
+            .wbs-table th,
+            .wbs-table td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ヘッダー -->
+        <div class="header">
+            <h1>FM様向け提案プロジェクト</h1>
+            <div class="subtitle">スケジュール計画・WBS・ガントチャート</div>
+            <div class="date">2025年8月版</div>
+        </div>
+
+        <!-- プロジェクト概要 -->
+        <div class="section">
+            <h2>1. プロジェクト概要</h2>
+            <div class="info-box">
+                <h4>目的</h4>
+                <p>FM様向けの構想提案から商品選定確定までを、抜け漏れなく進行するための計画・WBS・ガントチャートを提示します。</p>
+            </div>
+            
+            <h3>前提・スコープ</h3>
+            <ul style="margin-left: 20px; line-height: 2;">
+                <li><strong>展開想定:</strong> 2026年3月展開を主シナリオ（加速案）として設計</li>
+                <li><strong>参照情報:</strong> 2025年AW提案は「10月発売開始 → 6/3に初回提案」の実績あり</li>
+                <li><strong>日付基準:</strong> 作成日 2025-08-12（火）</li>
+            </ul>
+        </div>
+
+        <!-- マイルストーン -->
+        <div class="section">
+            <h2>2. マイルストーン</h2>
+            <div class="milestone-grid">
+                <div class="milestone-card">
+                    <h4>M0: マーケティングシステム 初期案完成</h4>
+                    <div class="milestone-date">2025-08-13</div>
+                    <div class="milestone-desc">ToDo:「今週の水曜まで」</div>
+                </div>
+                <div class="milestone-card">
+                    <h4>M1: 国内/海外 商品リスト受領完了</h4>
+                    <div class="milestone-date">2025-08-31</div>
+                    <div class="milestone-desc">日本アクセス様/加藤産業様</div>
+                </div>
+                <div class="milestone-card">
+                    <h4>M2: 海外商品スケジュール定義</h4>
+                    <div class="milestone-date">2025-08-14</div>
+                    <div class="milestone-desc">原本さんMTG（8/14固定）</div>
+                </div>
+                <div class="milestone-card">
+                    <h4>M3: 商品選定会議・一次確定</h4>
+                    <div class="milestone-date">2025-09-25</div>
+                    <div class="milestone-desc">9月中選定の着地日</div>
+                </div>
+                <div class="milestone-card">
+                    <h4>M4: FM様 構想提案（初回）</h4>
+                    <div class="milestone-date">2025-10-01</div>
+                    <div class="milestone-desc">9月末〜10月上旬のレンジ</div>
+                </div>
+                <div class="milestone-card">
+                    <h4>M5: 初回FB反映完了</h4>
+                    <div class="milestone-date">2025-10-17</div>
+                    <div class="milestone-desc">2週間想定</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ガントチャート -->
+        <div class="section">
+            <h2>3. ガントチャート（加速案）</h2>
+            <div class="chart-container">
+                <canvas id="ganttChart"></canvas>
+            </div>
+        </div>
+
+        <!-- WBS -->
+        <div class="section">
+            <h2>4. やるべきこと（WBS）</h2>
+            <table class="wbs-table">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>タスク</th>
+                        <th>Owner</th>
+                        <th>期限</th>
+                        <th>依存</th>
+                        <th>成果物</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>スケジュール前提の再確認（伊庭様）</td>
+                        <td><span class="owner-tag">TWO</span></td>
+                        <td>2025-08-18</td>
+                        <td>-</td>
+                        <td>確認メモ/確定前提一覧</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>国内/海外リスト受領依頼・追客</td>
+                        <td><span class="owner-tag">TWO</span></td>
+                        <td>2025-08-31</td>
+                        <td>1</td>
+                        <td>受領済みリスト（国内/海外）</td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>海外商品スケジュール定義MTG</td>
+                        <td><span class="owner-tag">TWO/原本様</span></td>
+                        <td>2025-08-14</td>
+                        <td>1</td>
+                        <td>MTG議事/アクション一覧</td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td>マーケティングシステム 初期案作成</td>
+                        <td><span class="owner-tag">TWO</span></td>
+                        <td>2025-08-13</td>
+                        <td>-</td>
+                        <td>構想スライドv0</td>
+                    </tr>
+                    <tr>
+                        <td>5</td>
+                        <td>マーケティングシステム 構想確定</td>
+                        <td><span class="owner-tag">TWO</span></td>
+                        <td>2025-09-25</td>
+                        <td>4</td>
+                        <td>構想スライドv1（確定）</td>
+                    </tr>
+                    <tr>
+                        <td>6</td>
+                        <td>国内商品候補抽出（リスト精査）</td>
+                        <td><span class="owner-tag">TWO</span></td>
+                        <td>2025-09-20</td>
+                        <td>2</td>
+                        <td>候補ロングリスト/評価表（国内）</td>
+                    </tr>
+                    <tr>
+                        <td>7</td>
+                        <td>海外商品候補抽出（MTG結果反映）</td>
+                        <td><span class="owner-tag">TWO</span></td>
+                        <td>2025-09-20</td>
+                        <td>2,3</td>
+                        <td>候補ロングリスト/評価表（海外）</td>
+                    </tr>
+                    <tr>
+                        <td>8</td>
+                        <td>商品選定会議（国内/海外統合）</td>
+                        <td><span class="owner-tag">TWO/関係者</span></td>
+                        <td>2025-09-25</td>
+                        <td>6,7</td>
+                        <td>一次選定リスト/決裁用メモ</td>
+                    </tr>
+                    <tr>
+                        <td>9</td>
+                        <td>構想提案資料作成（FM様向け）</td>
+                        <td><span class="owner-tag">TWO</span></td>
+                        <td>2025-09-30</td>
+                        <td>5,8</td>
+                        <td>提案資料v1</td>
+                    </tr>
+                    <tr>
+                        <td>10</td>
+                        <td>FM様 構想提案（初回）</td>
+                        <td><span class="owner-tag">TWO</span></td>
+                        <td>2025-10-01</td>
+                        <td>9</td>
+                        <td>提案実施/議事録</td>
+                    </tr>
+                    <tr>
+                        <td>11</td>
+                        <td>フィードバック反映（要望取り込み）</td>
+                        <td><span class="owner-tag">TWO</span></td>
+                        <td>2025-10-17</td>
+                        <td>10</td>
+                        <td>提案資料v2/更新版WBS</td>
+                    </tr>
+                    <tr>
+                        <td>12</td>
+                        <td>商品選定最終確定（参考：標準）</td>
+                        <td><span class="owner-tag">TWO/関係者</span></td>
+                        <td>2025-11-15</td>
+                        <td>11</td>
+                        <td>最終選定リスト</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 体制・役割 -->
+        <div class="section">
+            <h2>5. 体制・役割（TWO役割整理）</h2>
+            <div class="role-grid">
+                <div class="role-card">
+                    <h4>TWO</h4>
+                    <ul>
+                        <li>進行管理</li>
+                        <li>マーケ構想策定</li>
+                        <li>候補抽出/評価</li>
+                        <li>提案資料作成</li>
+                        <li>FB反映</li>
+                        <li>関係者調整</li>
+                    </ul>
+                </div>
+                <div class="role-card">
+                    <h4>日本アクセス様/加藤産業様</h4>
+                    <ul>
+                        <li>商品リスト提供</li>
+                        <li>選定会議参加</li>
+                        <li>供給面確認</li>
+                    </ul>
+                </div>
+                <div class="role-card">
+                    <h4>FM様</h4>
+                    <ul>
+                        <li>構想の方向性確認</li>
+                        <li>要望出し</li>
+                        <li>最終承認</li>
+                    </ul>
+                </div>
+                <div class="role-card">
+                    <h4>原本様</h4>
+                    <ul>
+                        <li>海外商品のスケジュール前提</li>
+                        <li>供給条件の整理</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- リスクと対応 -->
+        <div class="section">
+            <h2>6. リスクと対応</h2>
+            <div class="risk-grid">
+                <div class="risk-card">
+                    <h4>リスト受領遅延</h4>
+                    <p><strong>対応:</strong> フォロー頻度を週2回に固定。未受領時は暫定候補で評価作業を先行。</p>
+                </div>
+                <div class="risk-card">
+                    <h4>海外商品の調達リードタイム</h4>
+                    <p><strong>対応:</strong> 8/14で条件確定。調達困難時は国内代替案を同時提示。</p>
+                </div>
+                <div class="risk-card">
+                    <h4>マーケ構想の確定遅延</h4>
+                    <p><strong>対応:</strong> 初期案を8/13までに固定、評価枠組みを先に合意してスコープ管理。</p>
+                </div>
+                <div class="risk-card">
+                    <h4>提案スロット確保</h4>
+                    <p><strong>対応:</strong> 9月第4週の暫定枠を先予約。10/1本実施へロック。</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 直近アクション -->
+        <div class="section">
+            <h2>7. 今週〜来週の直近アクション</h2>
+            <ul class="action-list">
+                <li><span class="action-date">8/13（水）:</span> マーケティングシステム初期案 仕上げ（M0）</li>
+                <li><span class="action-date">8/14（木）:</span> 原本様MTG（アジェンダ送付・論点整理）</li>
+                <li><span class="action-date">〜8/31（日）:</span> リスト受領フォロー（進捗トラッキング）</li>
+                <li><span class="action-date">8/18（月）:</span> 伊庭様スケジュール前提の再確認（M1）</li>
+            </ul>
+        </div>
+
+        <!-- 参考情報 -->
+        <div class="section">
+            <h2>8. 参考：AW基準スケジュール（実績）</h2>
+            <div class="info-box">
+                <h4>既存実績</h4>
+                <ul style="margin-left: 20px; line-height: 2;">
+                    <li>10月発売開始 → 6/3に初回提案（2025年AW）</li>
+                    <li>3月展開の場合は、10月後半〜11月初旬に初回提案（要確認）</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ガントチャートのデータ
+        const ctx = document.getElementById('ganttChart').getContext('2d');
+        
+        // 日付を数値に変換する関数
+        function dateToNumber(dateStr) {
+            return new Date(dateStr).getTime();
+        }
+
+        const ganttData = {
+            labels: [
+                '8/12', '8/13', '8/14', '8/15', '8/18', '8/20', '8/25', '8/31',
+                '9/1', '9/5', '9/10', '9/15', '9/20', '9/25', '9/30',
+                '10/1', '10/6', '10/10', '10/17', '11/15'
+            ],
+            datasets: [
+                {
+                    label: 'マーケティングシステム初期案',
+                    data: [
+                        {x: dateToNumber('2025-08-12'), y: 1},
+                        {x: dateToNumber('2025-08-13'), y: 1}
+                    ],
+                    borderColor: '#e74c3c',
+                    backgroundColor: '#e74c3c',
+                    borderWidth: 3,
+                    pointRadius: 8,
+                    pointHoverRadius: 10
+                },
+                {
+                    label: '海外商品MTG',
+                    data: [
+                        {x: dateToNumber('2025-08-14'), y: 2}
+                    ],
+                    borderColor: '#f39c12',
+                    backgroundColor: '#f39c12',
+                    borderWidth: 3,
+                    pointRadius: 8,
+                    pointHoverRadius: 10
+                },
+                {
+                    label: 'スケジュール前提確認',
+                    data: [
+                        {x: dateToNumber('2025-08-18'), y: 3}
+                    ],
+                    borderColor: '#3498db',
+                    backgroundColor: '#3498db',
+                    borderWidth: 3,
+                    pointRadius: 8,
+                    pointHoverRadius: 10
+                },
+                {
+                    label: 'リスト受領完了',
+                    data: [
+                        {x: dateToNumber('2025-08-31'), y: 4}
+                    ],
+                    borderColor: '#2ecc71',
+                    backgroundColor: '#2ecc71',
+                    borderWidth: 3,
+                    pointRadius: 8,
+                    pointHoverRadius: 10
+                },
+                {
+                    label: '商品選定会議',
+                    data: [
+                        {x: dateToNumber('2025-09-25'), y: 5}
+                    ],
+                    borderColor: '#9b59b6',
+                    backgroundColor: '#9b59b6',
+                    borderWidth: 3,
+                    pointRadius: 8,
+                    pointHoverRadius: 10
+                },
+                {
+                    label: 'FM様初回提案',
+                    data: [
+                        {x: dateToNumber('2025-10-01'), y: 6}
+                    ],
+                    borderColor: '#e67e22',
+                    backgroundColor: '#e67e22',
+                    borderWidth: 3,
+                    pointRadius: 8,
+                    pointHoverRadius: 10
+                },
+                {
+                    label: 'FB反映完了',
+                    data: [
+                        {x: dateToNumber('2025-10-17'), y: 7}
+                    ],
+                    borderColor: '#1abc9c',
+                    backgroundColor: '#1abc9c',
+                    borderWidth: 3,
+                    pointRadius: 8,
+                    pointHoverRadius: 10
+                },
+                {
+                    label: '最終確定（参考）',
+                    data: [
+                        {x: dateToNumber('2025-11-15'), y: 8}
+                    ],
+                    borderColor: '#95a5a6',
+                    backgroundColor: '#95a5a6',
+                    borderWidth: 3,
+                    pointRadius: 8,
+                    pointHoverRadius: 10
+                }
+            ]
+        };
+
+        new Chart(ctx, {
+            type: 'scatter',
+            data: ganttData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'FM提案プロジェクト マイルストーン',
+                        font: {
+                            size: 16,
+                            weight: 'bold'
+                        }
+                    },
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'day',
+                            displayFormats: {
+                                day: 'M/d'
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: '日付'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        max: 9,
+                        ticks: {
+                            stepSize: 1,
+                            callback: function(value) {
+                                const labels = [
+                                    '', '初期案完成', '海外MTG', '前提確認', 
+                                    'リスト受領', '選定会議', '初回提案', 
+                                    'FB反映', '最終確定'
+                                ];
+                                return labels[value] || '';
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'マイルストーン'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

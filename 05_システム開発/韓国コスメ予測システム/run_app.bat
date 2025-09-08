@@ -1,0 +1,9 @@
+@echo off
+echo 韓国コスメヒット予測システムを起動します...
+echo.
+echo まず必要なパッケージをインストールします...
+pip install streamlit pandas numpy plotly scipy xlsxwriter openpyxl
+echo.
+echo Streamlitアプリを起動します...
+streamlit run app\app_simple.py
+pause

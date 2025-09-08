@@ -1,0 +1,64 @@
+{
+  "timestamp": "20250903_151634",
+  "results": [
+    {
+      "test": "Academic Collector",
+      "status": "PASS"
+    },
+    {
+      "test": "Basic Model",
+      "status": "PASS"
+    },
+    {
+      "test": "News Collector",
+      "status": "WARNING",
+      "detail": "No module named 'dotenv'"
+    },
+    {
+      "test": "Data Pipeline",
+      "status": "WARNING",
+      "detail": "No module named 'dotenv'"
+    },
+    {
+      "test": "Feature Engineering",
+      "status": "PASS"
+    },
+    {
+      "test": "Model Explainer",
+      "status": "WARNING",
+      "detail": "No module named 'shap'"
+    },
+    {
+      "test": "Optimization",
+      "status": "WARNING",
+      "detail": "No module named 'optuna'"
+    },
+    {
+      "test": "Multimodal Analysis",
+      "status": "FAIL",
+      "detail": "name 'torch' is not defined"
+    },
+    {
+      "test": "Business Reports",
+      "status": "PASS"
+    },
+    {
+      "test": "A/B Testing",
+      "status": "PASS"
+    },
+    {
+      "test": "Ensemble Models",
+      "status": "PASS"
+    },
+    {
+      "test": "API Endpoints",
+      "status": "WARNING",
+      "detail": "No module named 'fastapi'"
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "warnings": 5,
+    "failed": 1
+  }
+}
