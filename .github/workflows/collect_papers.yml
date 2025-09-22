@@ -1,0 +1,82 @@
+name: Collect and Analyze Papers
+
+on:
+  # 定期実行（毎週月曜日の朝9時 JST）
+  schedule:
+    - cron: '0 0 * * 1'  # UTC時間で設定（JST-9時間）
+  
+  # 手動実行を可能にする
+  workflow_dispatch:
+    inputs:
+      days_back:
+        description: 'Number of days to look back for papers'
+        required: false
+        default: '30'
+      max_papers:
+        description: 'Maximum papers per keyword'
+        required: false
+        default: '10'
+
+jobs:
+  collect-and-analyze:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Cache pip packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Run paper collection
+      env:
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        NCBI_API_KEY: ${{ secrets.NCBI_API_KEY }}
+      run: |
+        python src/main.py \
+          --mode collect \
+          --days-back ${{ github.event.inputs.days_back || '30' }} \
+          --max-papers ${{ github.event.inputs.max_papers || '10' }}
+    
+    - name: Run analysis and summarization
+      env:
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      run: |
+        python src/main.py --mode analyze
+    
+    - name: Generate dashboard data
+      run: |
+        python src/main.py --mode dashboard
+    
+    - name: Commit and push changes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add data/
+        git diff --quiet && git diff --staged --quiet || (git commit -m "Update papers and analysis [$(date +'%Y-%m-%d')]" && git push)
+    
+    - name: Deploy to GitHub Pages
+      if: success()
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./dashboard
+        keep_files: false
+        publish_branch: gh-pages
