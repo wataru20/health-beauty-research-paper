@@ -1,0 +1,13 @@
+# Core dependencies
+requests==2.31.0
+google-generativeai==0.3.2
+
+# Data processing
+pandas==2.1.4
+numpy==1.24.3
+
+# XML parsing (built-in modules are already included)
+# xml.etree.ElementTree is built-in
+
+# Optional: For enhanced functionality
+python-dotenv==1.0.0  # For environment variable management

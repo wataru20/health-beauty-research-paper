@@ -50,12 +50,15 @@ wheels/
 .installed.cfg
 *.egg
 MANIFEST
+*.manifest
+*.spec
 
 # Virtual Environments
 venv/
 ENV/
 env/
 .venv
+.venv/
 
 # IDE
 .vscode/
@@ -82,3 +85,34 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Cache
+.cache/
+*.cache
+
+# Test coverage
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# Streamlit
+.streamlit/
+
+# Data files
+data/
+*.csv
+*.json
+*.xlsx
+*.xls
