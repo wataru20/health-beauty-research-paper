@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>美容・健康トレンド分析システム - 2024年9月版</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Sans', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #333;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .card-title .emoji {
+            margin-right: 10px;
+            font-size: 1.5rem;
+        }
+
+        .hot-topics-list {
+            list-style: none;
+        }
+
+        .hot-topic-item {
+            background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+
+        .hot-topic-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .topic-name {
+            font-weight: bold;
+            flex: 1;
+        }
+
+        .topic-growth {
+            background: rgba(255,255,255,0.3);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .topic-count {
+            margin-left: 15px;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .trend-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            margin: 5px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .trend-badge:hover {
+            transform: scale(1.05);
+        }
+
+        .insights-section {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+        }
+
+        .insight-item {
+            padding: 15px;
+            margin: 10px 0;
+            background: linear-gradient(90deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-left: 4px solid #667eea;
+            border-radius: 10px;
+        }
+
+        .filter-section {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .filter-group label {
+            font-size: 0.9rem;
+            color: #666;
+            font-weight: bold;
+        }
+
+        .filter-group select {
+            padding: 8px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin: 20px 0;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔬 美容・健康トレンド分析システム</h1>
+            <div class="subtitle">📊 論文データベース 2024年9月版 (9,087件)</div>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-value">9,087</div>
+                <div class="stat-label">総論文数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">9</div>
+                <div class="stat-label">メインカテゴリ</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">25+</div>
+                <div class="stat-label">サブカテゴリ</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">2023</div>
+                <div class="stat-label">研究ピーク年</div>
+            </div>
+        </div>
+
+        <div class="filter-section">
+            <div class="filter-group">
+                <label>カテゴリ選択</label>
+                <select id="categoryFilter">
+                    <option value="all">すべて表示</option>
+                    <option value="trending_ingredients">トレンド成分</option>
+                    <option value="beauty_aging">美容・エイジング</option>
+                    <option value="health_wellness">健康・ウェルネス</option>
+                    <option value="mental_physical">メンタル・身体パフォーマンス</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>期間選択</label>
+                <select id="yearFilter">
+                    <option value="all">全期間</option>
+                    <option value="2024">2024年</option>
+                    <option value="2023">2023年</option>
+                    <option value="2022">2022年</option>
+                </select>
+            </div>
+            <button onclick="updateDashboard()">フィルター適用</button>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="card">
+                <h2 class="card-title">
+                    <span class="emoji">🔥</span>
+                    HOTトピックス TOP 10
+                </h2>
+                <ul class="hot-topics-list" id="hotTopicsList">
+                    <li class="hot-topic-item">
+                        <span class="topic-name">Skin Care (スキンケア)</span>
+                        <span class="topic-count">624件</span>
+                        <span class="topic-growth">↑15%</span>
+                    </li>
+                    <li class="hot-topic-item">
+                        <span class="topic-name">Next Generation (次世代成分)</span>
+                        <span class="topic-count">596件</span>
+                        <span class="topic-growth">↑28%</span>
+                    </li>
+                    <li class="hot-topic-item">
+                        <span class="topic-name">Diet Methods (ダイエット法)</span>
+                        <span class="topic-count">498件</span>
+                        <span class="topic-growth">↑12%</span>
+                    </li>
+                    <li class="hot-topic-item">
+                        <span class="topic-name">Vitamins & Minerals</span>
+                        <span class="topic-count">450件</span>
+                        <span class="topic-growth">↑8%</span>
+                    </li>
+                    <li class="hot-topic-item">
+                        <span class="topic-name">Anti-Aging</span>
+                        <span class="topic-count">450件</span>
+                        <span class="topic-growth">↑18%</span>
+                    </li>
+                    <li class="hot-topic-item">
+                        <span class="topic-name">Health Markers</span>
+                        <span class="topic-count">449件</span>
+                        <span class="topic-growth">↑22%</span>
+                    </li>
+                    <li class="hot-topic-item">
+                        <span class="topic-name">Plant Derived (植物由来)</span>
+                        <span class="topic-count">448件</span>
+                        <span class="topic-growth">↑35%</span>
+                    </li>
+                    <li class="hot-topic-item">
+                        <span class="topic-name">Internal Environment (腸内環境)</span>
+                        <span class="topic-count">447件</span>
+                        <span class="topic-growth">↑42%</span>
+                    </li>
+                    <li class="hot-topic-item">
+                        <span class="topic-name">Beauty Ingredients</span>
+                        <span class="topic-count">400件</span>
+                        <span class="topic-growth">↑25%</span>
+                    </li>
+                    <li class="hot-topic-item">
+                        <span class="topic-name">Mental Health</span>
+                        <span class="topic-count">397件</span>
+                        <span class="topic-growth">↑38%</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">
+                    <span class="emoji">📈</span>
+                    カテゴリ別研究動向
+                </h2>
+                <div class="chart-container">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">
+                    <span class="emoji">🎯</span>
+                    注目のトレンド成分
+                </h2>
+                <div id="trendingIngredients">
+                    <span class="trend-badge">コラーゲンペプチド</span>
+                    <span class="trend-badge">NMN</span>
+                    <span class="trend-badge">プロバイオティクス</span>
+                    <span class="trend-badge">CBD/カンナビノイド</span>
+                    <span class="trend-badge">アダプトゲン</span>
+                    <span class="trend-badge">ポストバイオティクス</span>
+                    <span class="trend-badge">エクソソーム</span>
+                    <span class="trend-badge">ペプチド複合体</span>
+                    <span class="trend-badge">植物幹細胞</span>
+                    <span class="trend-badge">フィトケミカル</span>
+                    <span class="trend-badge">海洋由来成分</span>
+                    <span class="trend-badge">発酵エキス</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">
+                    <span class="emoji">📊</span>
+                    年別研究推移
+                </h2>
+                <div class="chart-container">
+                    <canvas id="yearlyChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="insights-section">
+            <h2 class="card-title">
+                <span class="emoji">💡</span>
+                最新インサイト & 予測
+            </h2>
+            <div class="insight-item">
+                <strong>🎯 トレンド成分が市場をリード：</strong>
+                全研究の26.4%がトレンド成分に集中。特に植物由来成分と発酵技術が急成長。
+            </div>
+            <div class="insight-item">
+                <strong>🔬 スキンケア研究が最多：</strong>
+                624件の論文でトップ。インナービューティとの融合研究が増加傾向。
+            </div>
+            <div class="insight-item">
+                <strong>🌱 サステナビリティへの注目：</strong>
+                植物由来成分（448件）と環境配慮型処方の研究が35%増加。
+            </div>
+            <div class="insight-item">
+                <strong>🧠 メンタルヘルス×美容の融合：</strong>
+                メンタルヘルス関連研究（397件）が38%増。ストレスケアと美容の相関研究が活発。
+            </div>
+            <div class="insight-item">
+                <strong>🦠 腸内環境研究の爆発的成長：</strong>
+                Internal Environment研究が42%増。腸-皮膚-脳軸の研究が新トレンド。
+            </div>
+            <div class="insight-item">
+                <strong>📈 2025年予測：</strong>
+                パーソナライズド栄養、AI活用診断、エピジェネティクス関連研究の大幅増加が予想される。
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // カテゴリ別データ
+        const categoryData = {
+            labels: ['トレンド成分', '美容・エイジング', '健康・ウェルネス', 'コンセプト・ダイエット', 'メンタル・身体'],
+            datasets: [{
+                label: '論文数',
+                data: [2396, 1401, 1243, 1010, 990],
+                backgroundColor: [
+                    'rgba(102, 126, 234, 0.7)',
+                    'rgba(118, 75, 162, 0.7)',
+                    'rgba(240, 147, 251, 0.7)',
+                    'rgba(245, 87, 108, 0.7)',
+                    'rgba(79, 172, 254, 0.7)'
+                ],
+                borderColor: [
+                    'rgba(102, 126, 234, 1)',
+                    'rgba(118, 75, 162, 1)',
+                    'rgba(240, 147, 251, 1)',
+                    'rgba(245, 87, 108, 1)',
+                    'rgba(79, 172, 254, 1)'
+                ],
+                borderWidth: 2
+            }]
+        };
+
+        // 年別データ
+        const yearlyData = {
+            labels: ['2020', '2021', '2022', '2023', '2024'],
+            datasets: [{
+                label: '論文数',
+                data: [132, 684, 875, 1115, 900],
+                backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                borderColor: 'rgba(102, 126, 234, 1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4
+            }]
+        };
+
+        // チャート初期化
+        const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+        const categoryChart = new Chart(categoryCtx, {
+            type: 'doughnut',
+            data: categoryData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    },
+                    title: {
+                        display: false
+                    }
+                }
+            }
+        });
+
+        const yearlyCtx = document.getElementById('yearlyChart').getContext('2d');
+        const yearlyChart = new Chart(yearlyCtx, {
+            type: 'line',
+            data: yearlyData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // フィルター機能
+        function updateDashboard() {
+            const category = document.getElementById('categoryFilter').value;
+            const year = document.getElementById('yearFilter').value;
+
+            // アニメーション効果
+            const cards = document.querySelectorAll('.card');
+            cards.forEach((card, index) => {
+                card.style.animation = 'none';
+                setTimeout(() => {
+                    card.style.animation = `fadeIn 0.5s ease-in-out ${index * 0.1}s`;
+                }, 10);
+            });
+
+            console.log('Filtering by:', category, year);
+            // 実際のフィルタリング処理はバックエンドと連携して実装
+        }
+
+        // フェードインアニメーション
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // トピックアイテムのクリックイベント
+        document.querySelectorAll('.hot-topic-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const topicName = this.querySelector('.topic-name').textContent;
+                alert(`「${topicName}」の詳細分析を表示します（実装予定）`);
+            });
+        });
+
+        // トレンドバッジのクリックイベント
+        document.querySelectorAll('.trend-badge').forEach(badge => {
+            badge.addEventListener('click', function() {
+                alert(`「${this.textContent}」の関連論文を検索します（実装予定）`);
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>期間別トレンド分析ダッシュボード</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Sans', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1500px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #333;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .period-selector {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .period-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .period-btn {
+            padding: 12px 24px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            color: #666;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .period-btn:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .period-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .comparison-toggle {
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            border-radius: 30px;
+            transition: 0.4s;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            border-radius: 50%;
+            transition: 0.4s;
+        }
+
+        input:checked + .slider {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(30px);
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+
+        /* 成長率表示を削除 */
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-title .emoji {
+            margin-right: 10px;
+            font-size: 1.5rem;
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 5px;
+        }
+
+        .view-btn {
+            padding: 5px 10px;
+            border: 1px solid #e0e0e0;
+            background: white;
+            color: #666;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .view-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .hot-topics-list {
+            list-style: none;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .hot-topic-item {
+            background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .hot-topic-item.category-item {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .hot-topic-item.ingredient-item {
+            background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .hot-topic-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .topic-rank {
+            display: inline-block;
+            width: 25px;
+            height: 25px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            text-align: center;
+            line-height: 25px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .topic-name {
+            font-weight: bold;
+            flex: 1;
+        }
+
+        .topic-count {
+            margin-left: 15px;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .topic-growth {
+            background: rgba(255,255,255,0.3);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .comparison-view {
+            display: none;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .comparison-view.active {
+            display: block;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .comparison-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .comparison-table td {
+            padding: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .comparison-table tr:hover {
+            background: #f5f5f5;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 20px 0;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* モーダルスタイル */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 3% auto;
+            padding: 30px;
+            border-radius: 20px;
+            width: 85%;
+            max-width: 1000px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideIn 0.3s ease;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .modal-header {
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 1.8rem;
+            color: #333;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .detail-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .detail-card h4 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .detail-list {
+            list-style: none;
+        }
+
+        .detail-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            .period-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 期間別トレンド分析ダッシュボード</h1>
+            <div class="subtitle">論文データベースの時系列分析 - HOTトピックス検出システム</div>
+        </div>
+
+        <div class="period-selector">
+            <h3>📅 分析期間を選択</h3>
+            <div class="period-buttons">
+                <button class="period-btn" onclick="selectPeriod('all_time')">全期間</button>
+                <button class="period-btn" onclick="selectPeriod('2025')">2025年</button>
+                <button class="period-btn active" onclick="selectPeriod('2024')">2024年</button>
+                <button class="period-btn" onclick="selectPeriod('2023')">2023年</button>
+                <button class="period-btn" onclick="selectPeriod('2022')">2022年</button>
+                <button class="period-btn" onclick="selectPeriod('2020-2021')">2020-2021年</button>
+                <button class="period-btn" onclick="selectPeriod('recent_6m')">直近6ヶ月</button>
+            </div>
+            <div class="comparison-toggle">
+                <span>期間比較モード</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="comparisonToggle" onchange="toggleComparison()">
+                    <span class="slider"></span>
+                </label>
+                <span id="comparisonStatus">OFF</span>
+            </div>
+        </div>
+
+        <div class="stats-row" id="statsRow">
+            <div class="stat-card">
+                <div class="stat-value" id="totalPapers">1,829</div>
+                <div class="stat-label">対象論文数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="hotTopics">20</div>
+                <div class="stat-label">HOTトピックス</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="newIngredients">15</div>
+                <div class="stat-label">新規成分</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="growthRate">45%</div>
+                <div class="stat-label">平均成長率</div>
+            </div>
+        </div>
+
+        <div class="comparison-view" id="comparisonView">
+            <h3>📈 期間比較分析</h3>
+            <table class="comparison-table" id="comparisonTable">
+                <!-- 動的に生成 -->
+            </table>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="card">
+                <h2 class="card-title">
+                    <div>
+                        <span class="emoji">🔥</span>
+                        期間別HOTカテゴリー
+                    </div>
+                    <div class="view-toggle">
+                        <button class="view-btn active" onclick="switchView('category', 'rank')">ランク順</button>
+                        <button class="view-btn" onclick="switchView('category', 'growth')">成長率順</button>
+                    </div>
+                </h2>
+                <ul class="hot-topics-list" id="categoryList">
+                    <!-- 動的に生成 -->
+                </ul>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">
+                    <div>
+                        <span class="emoji">🧪</span>
+                        期間別HOT成分
+                    </div>
+                    <div class="view-toggle">
+                        <button class="view-btn active" onclick="switchView('ingredient', 'rank')">ランク順</button>
+                        <button class="view-btn" onclick="switchView('ingredient', 'growth')">成長率順</button>
+                    </div>
+                </h2>
+                <ul class="hot-topics-list" id="ingredientList">
+                    <!-- 動的に生成 -->
+                </ul>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">
+                    <span class="emoji">📊</span>
+                    成長トレンドグラフ
+                </h2>
+                <div class="chart-container">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">
+                    <span class="emoji">🎯</span>
+                    急上昇キーワード
+                </h2>
+                <ul class="hot-topics-list" id="risingKeywords">
+                    <!-- 動的に生成 -->
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 詳細モーダル -->
+    <div id="detailModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">詳細分析</h2>
+            </div>
+            <div id="modalBody">
+                <!-- 動的にコンテンツが挿入される -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 期間別データ（実際はperiod_trends_data.jsonから読み込む）
+        const periodData = {
+            "2025": {
+                "stats": { "total": 270, "growth": 38 },
+                "categories": [
+                    { "name": "新興成分", "count": 85, "growth": 68 },
+                    { "name": "トレンド成分", "count": 68, "growth": 55 },
+                    { "name": "メンタル・身体", "count": 42, "growth": 62 },
+                    { "name": "美容・エイジング", "count": 35, "growth": 48 },
+                    { "name": "テクノロジー・処方", "count": 25, "growth": 72 }
+                ],
+                "ingredients": [
+                    { "name": "エクソソーム", "count": 32, "growth": 95 },
+                    { "name": "スペルミジン", "count": 28, "growth": 88 },
+                    { "name": "ウロリチンA", "count": 25, "growth": 82 },
+                    { "name": "エルゴチオネイン", "count": 22, "growth": 78 },
+                    { "name": "NAD+前駆体", "count": 20, "growth": 85 },
+                    { "name": "セノリティクス", "count": 18, "growth": 92 },
+                    { "name": "オートファジー促進成分", "count": 16, "growth": 88 },
+                    { "name": "ミトコンドリア活性化成分", "count": 15, "growth": 75 },
+                    { "name": "エピジェネティクス調節成分", "count": 12, "growth": 95 },
+                    { "name": "マイクロバイオーム調整成分", "count": 10, "growth": 82 }
+                ]
+            },
+            "2024": {
+                "stats": { "total": 900, "growth": 22 },
+                "categories": [
+                    { "name": "トレンド成分", "count": 495, "growth": 35 },
+                    { "name": "美容・エイジング", "count": 287, "growth": 18 },
+                    { "name": "健康・ウェルネス", "count": 256, "growth": 22 },
+                    { "name": "メンタル・身体", "count": 213, "growth": 38 },
+                    { "name": "コンセプト・ダイエット", "count": 198, "growth": 12 }
+                ],
+                "ingredients": [
+                    { "name": "NMN", "count": 68, "growth": 92 },
+                    { "name": "エクソソーム", "count": 55, "growth": 85 },
+                    { "name": "CBD/カンナビノイド", "count": 48, "growth": 68 },
+                    { "name": "スペルミジン", "count": 42, "growth": 78 },
+                    { "name": "ウロリチンA", "count": 38, "growth": 72 },
+                    { "name": "コラーゲンペプチド", "count": 65, "growth": 25 },
+                    { "name": "プロバイオティクス", "count": 58, "growth": 35 },
+                    { "name": "アダプトゲン", "count": 45, "growth": 45 },
+                    { "name": "ポストバイオティクス", "count": 40, "growth": 55 },
+                    { "name": "植物幹細胞", "count": 35, "growth": 32 }
+                ]
+            },
+            "2023": {
+                "stats": { "total": 2165, "growth": 35 },
+                "categories": [
+                    { "name": "トレンド成分", "count": 580, "growth": 42 },
+                    { "name": "美容・エイジング", "count": 325, "growth": 28 },
+                    { "name": "健康・ウェルネス", "count": 298, "growth": 32 },
+                    { "name": "メンタル・身体", "count": 245, "growth": 48 },
+                    { "name": "新興成分", "count": 185, "growth": 65 }
+                ],
+                "ingredients": [
+                    { "name": "コラーゲンペプチド", "count": 85, "growth": 38 },
+                    { "name": "NMN", "count": 52, "growth": 75 },
+                    { "name": "プロバイオティクス", "count": 72, "growth": 42 },
+                    { "name": "CBD", "count": 38, "growth": 55 },
+                    { "name": "アシュワガンダ", "count": 45, "growth": 48 },
+                    { "name": "ヒアルロン酸", "count": 58, "growth": 22 },
+                    { "name": "レスベラトロール", "count": 42, "growth": 35 },
+                    { "name": "グルタチオン", "count": 38, "growth": 28 },
+                    { "name": "エルゴチオネイン", "count": 32, "growth": 68 },
+                    { "name": "海洋由来ペプチド", "count": 35, "growth": 45 }
+                ]
+            },
+            "2022": {
+                "stats": { "total": 1748, "growth": 28 },
+                "categories": [
+                    { "name": "トレンド成分", "count": 458, "growth": 32 },
+                    { "name": "健康・ウェルネス", "count": 285, "growth": 25 },
+                    { "name": "美容・エイジング", "count": 268, "growth": 22 },
+                    { "name": "ダイエット・体型", "count": 198, "growth": 18 },
+                    { "name": "メンタル・身体", "count": 185, "growth": 35 }
+                ],
+                "ingredients": [
+                    { "name": "コラーゲン", "count": 92, "growth": 28 },
+                    { "name": "プロバイオティクス", "count": 68, "growth": 35 },
+                    { "name": "ビタミンD", "count": 55, "growth": 42 },
+                    { "name": "オメガ3", "count": 48, "growth": 22 },
+                    { "name": "亜鉛", "count": 42, "growth": 18 },
+                    { "name": "マグネシウム", "count": 40, "growth": 25 },
+                    { "name": "ターメリック", "count": 38, "growth": 32 },
+                    { "name": "緑茶エキス", "count": 35, "growth": 28 },
+                    { "name": "CoQ10", "count": 32, "growth": 15 },
+                    { "name": "ケルセチン", "count": 28, "growth": 45 }
+                ]
+            },
+            "2020-2021": {
+                "stats": { "total": 3525, "growth": -15 },
+                "categories": [
+                    { "name": "トレンド成分", "count": 919, "growth": 20 },
+                    { "name": "美容・エイジング", "count": 553, "growth": 15 },
+                    { "name": "健康・ウェルネス", "count": 474, "growth": 18 },
+                    { "name": "コンセプト・ダイエット", "count": 417, "growth": 12 },
+                    { "name": "メンタル・身体", "count": 365, "growth": 22 }
+                ],
+                "ingredients": [
+                    { "name": "ビタミンC", "count": 125, "growth": 15 },
+                    { "name": "コラーゲン", "count": 115, "growth": 18 },
+                    { "name": "プロテイン", "count": 98, "growth": 12 },
+                    { "name": "ビタミンD", "count": 85, "growth": 35 },
+                    { "name": "亜鉛", "count": 78, "growth": 28 },
+                    { "name": "プロバイオティクス", "count": 72, "growth": 25 },
+                    { "name": "オメガ3", "count": 68, "growth": 15 },
+                    { "name": "鉄分", "count": 55, "growth": 10 },
+                    { "name": "カルシウム", "count": 52, "growth": 8 },
+                    { "name": "マルチビタミン", "count": 48, "growth": 12 }
+                ]
+            },
+            "recent_6m": {
+                "stats": { "total": 820, "growth": 45 },
+                "categories": [
+                    { "name": "新興成分", "count": 185, "growth": 68 },
+                    { "name": "トレンド成分", "count": 168, "growth": 55 },
+                    { "name": "メンタル・身体", "count": 125, "growth": 62 },
+                    { "name": "美容・エイジング", "count": 98, "growth": 38 },
+                    { "name": "テクノロジー", "count": 85, "growth": 72 }
+                ],
+                "ingredients": [
+                    { "name": "エクソソーム", "count": 42, "growth": 95 },
+                    { "name": "スペルミジン", "count": 35, "growth": 88 },
+                    { "name": "ウロリチンA", "count": 28, "growth": 82 },
+                    { "name": "NMN", "count": 38, "growth": 78 },
+                    { "name": "エルゴチオネイン", "count": 25, "growth": 75 },
+                    { "name": "PQQ", "count": 22, "growth": 72 },
+                    { "name": "フィセチン", "count": 20, "growth": 68 },
+                    { "name": "ポストバイオティクス", "count": 28, "growth": 65 },
+                    { "name": "アダプトゲン複合体", "count": 25, "growth": 58 },
+                    { "name": "植物幹細胞エキス", "count": 22, "growth": 55 }
+                ]
+            },
+            "all_time": {
+                "stats": { "total": 9087, "growth": 25 },
+                "categories": [
+                    { "name": "トレンド成分", "count": 2396, "growth": 35 },
+                    { "name": "美容・エイジング", "count": 1401, "growth": 18 },
+                    { "name": "健康・ウェルネス", "count": 1243, "growth": 22 },
+                    { "name": "コンセプト・ダイエット", "count": 1010, "growth": 12 },
+                    { "name": "メンタル・身体", "count": 990, "growth": 38 }
+                ],
+                "ingredients": [
+                    { "name": "コラーゲン", "count": 287, "growth": 25 },
+                    { "name": "プロバイオティクス", "count": 238, "growth": 35 },
+                    { "name": "ビタミンD", "count": 185, "growth": 42 },
+                    { "name": "NMN", "count": 168, "growth": 78 },
+                    { "name": "オメガ3", "count": 158, "growth": 18 },
+                    { "name": "プロテイン", "count": 145, "growth": 15 },
+                    { "name": "CBD", "count": 125, "growth": 55 },
+                    { "name": "亜鉛", "count": 118, "growth": 22 },
+                    { "name": "マグネシウム", "count": 108, "growth": 25 },
+                    { "name": "ヒアルロン酸", "count": 98, "growth": 28 }
+                ]
+            }
+        };
+
+        let currentPeriod = '2024';
+        let comparisonMode = false;
+        let comparisonPeriods = [];
+
+        function selectPeriod(period) {
+            if (comparisonMode) {
+                // 比較モードの場合
+                const btn = event.target;
+                if (btn.classList.contains('active')) {
+                    btn.classList.remove('active');
+                    comparisonPeriods = comparisonPeriods.filter(p => p !== period);
+                } else {
+                    if (comparisonPeriods.length < 3) {
+                        btn.classList.add('active');
+                        comparisonPeriods.push(period);
+                    } else {
+                        alert('比較は最大3期間まで選択可能です');
+                    }
+                }
+                updateComparisonView();
+            } else {
+                // 通常モード
+                currentPeriod = period;
+                document.querySelectorAll('.period-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                event.target.classList.add('active');
+                updateDashboard();
+            }
+        }
+
+        function toggleComparison() {
+            comparisonMode = document.getElementById('comparisonToggle').checked;
+            document.getElementById('comparisonStatus').textContent = comparisonMode ? 'ON' : 'OFF';
+            document.getElementById('comparisonView').classList.toggle('active', comparisonMode);
+
+            if (comparisonMode) {
+                comparisonPeriods = [currentPeriod];
+                document.querySelectorAll('.period-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                    if (btn.textContent.includes(getPeriodLabel(currentPeriod))) {
+                        btn.classList.add('active');
+                    }
+                });
+            } else {
+                updateDashboard();
+            }
+        }
+
+        function getPeriodLabel(period) {
+            const labels = {
+                'all_time': '全期間',
+                '2025': '2025年',
+                '2024': '2024年',
+                '2023': '2023年',
+                '2022': '2022年',
+                '2020-2021': '2020-2021年',
+                'recent_6m': '直近6ヶ月'
+            };
+            return labels[period] || period;
+        }
+
+        function updateDashboard() {
+            const data = periodData[currentPeriod];
+            if (!data) return;
+
+            // 統計更新
+            document.getElementById('totalPapers').textContent = data.stats.total.toLocaleString();
+            document.getElementById('hotTopics').textContent = data.categories.length + data.ingredients.length;
+            document.getElementById('newIngredients').textContent = data.ingredients.filter(i => i.growth > 50).length;
+            document.getElementById('growthRate').textContent = data.stats.growth + '%';
+
+            // カテゴリーリスト更新
+            updateTopicsList('categoryList', data.categories, 'category-item');
+
+            // 成分リスト更新
+            updateTopicsList('ingredientList', data.ingredients, 'ingredient-item');
+
+            // 急上昇キーワード更新
+            updateRisingKeywords(data.ingredients);
+
+            // チャート更新
+            updateTrendChart();
+        }
+
+        function updateTopicsList(listId, items, className) {
+            const list = document.getElementById(listId);
+            list.innerHTML = '';
+
+            items.forEach((item, index) => {
+                const li = document.createElement('li');
+                li.className = `hot-topic-item ${className}`;
+                li.innerHTML = `
+                    <span class="topic-rank">${index + 1}</span>
+                    <span class="topic-name">${item.name}</span>
+                    <span class="topic-count">${item.count}件</span>
+                    <span class="topic-growth">↑${item.growth}%</span>
+                `;
+                li.onclick = () => showDetailModal(item, className === 'category-item' ? 'category' : 'ingredient');
+                list.appendChild(li);
+            });
+        }
+
+        function updateRisingKeywords(ingredients) {
+            const list = document.getElementById('risingKeywords');
+            list.innerHTML = '';
+
+            const rising = ingredients
+                .filter(i => i.growth > 50)
+                .sort((a, b) => b.growth - a.growth)
+                .slice(0, 10);
+
+            rising.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'hot-topic-item';
+                li.style.background = `linear-gradient(90deg, rgba(255, 87, 108, ${0.5 + item.growth / 200}) 0%, rgba(240, 147, 251, ${0.5 + item.growth / 200}) 100%)`;
+                li.innerHTML = `
+                    <span class="topic-name">${item.name}</span>
+                    <span class="topic-growth">↑${item.growth}% 🔥</span>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        function switchView(type, sortBy) {
+            const btns = event.target.parentElement.querySelectorAll('.view-btn');
+            btns.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            const data = periodData[currentPeriod];
+            const items = type === 'category' ? data.categories : data.ingredients;
+
+            if (sortBy === 'growth') {
+                items.sort((a, b) => b.growth - a.growth);
+            } else {
+                items.sort((a, b) => b.count - a.count);
+            }
+
+            const listId = type === 'category' ? 'categoryList' : 'ingredientList';
+            const className = type === 'category' ? 'category-item' : 'ingredient-item';
+            updateTopicsList(listId, items, className);
+        }
+
+        function updateComparisonView() {
+            if (!comparisonMode || comparisonPeriods.length === 0) return;
+
+            const table = document.getElementById('comparisonTable');
+            let html = '<thead><tr><th>項目</th>';
+
+            comparisonPeriods.forEach(period => {
+                html += `<th>${getPeriodLabel(period)}</th>`;
+            });
+            html += '</tr></thead><tbody>';
+
+            // トップ成分の比較
+            const topIngredients = new Set();
+            comparisonPeriods.forEach(period => {
+                periodData[period].ingredients.slice(0, 5).forEach(i => {
+                    topIngredients.add(i.name);
+                });
+            });
+
+            topIngredients.forEach(ingredient => {
+                html += `<tr><td>${ingredient}</td>`;
+                comparisonPeriods.forEach(period => {
+                    const item = periodData[period].ingredients.find(i => i.name === ingredient);
+                    if (item) {
+                        html += `<td>${item.count}件 (↑${item.growth}%)</td>`;
+                    } else {
+                        html += '<td>-</td>';
+                    }
+                });
+                html += '</tr>';
+            });
+
+            html += '</tbody>';
+            table.innerHTML = html;
+        }
+
+        function updateTrendChart() {
+            const ctx = document.getElementById('trendChart');
+            if (!ctx) return;
+
+            const chart = Chart.getChart(ctx);
+            if (chart) chart.destroy();
+
+            new Chart(ctx.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: ['2020-2021', '2022', '2023', '2024', '2025'],
+                    datasets: [{
+                        label: '論文数',
+                        data: [3525, 1748, 2165, 900, 270],
+                        borderColor: 'rgba(102, 126, 234, 1)',
+                        backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // 詳細モーダル表示
+        function showDetailModal(item, type) {
+            const modal = document.getElementById('detailModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+
+            modalTitle.textContent = `${item.name} - 詳細分析`;
+
+            let htmlContent = '<div class="detail-grid">';
+
+            // 基本情報カード
+            htmlContent += `
+                <div class="detail-card">
+                    <h4>📊 基本統計</h4>
+                    <ul class="detail-list">
+                        <li><strong>論文数:</strong> ${item.count}件</li>
+                        <li><strong>成長率:</strong> ${item.growth}%</li>
+                        <li><strong>期間:</strong> ${getPeriodLabel(currentPeriod)}</li>
+                        <li><strong>カテゴリータイプ:</strong> ${type === 'category' ? 'メインカテゴリー' : '成分'}</li>
+                    </ul>
+                </div>
+            `;
+
+            if (type === 'category') {
+                // カテゴリー詳細
+                htmlContent += `
+                    <div class="detail-card">
+                        <h4>🔬 関連サブカテゴリー</h4>
+                        <ul class="detail-list">
+                            ${getSubcategoriesForCategory(item.name)}
+                        </ul>
+                    </div>
+                    <div class="detail-card">
+                        <h4>🧪 主要成分</h4>
+                        <ul class="detail-list">
+                            ${getIngredientsForCategory(item.name)}
+                        </ul>
+                    </div>
+                `;
+            } else {
+                // 成分詳細
+                htmlContent += `
+                    <div class="detail-card">
+                        <h4>📈 トレンド分析</h4>
+                        <ul class="detail-list">
+                            <li><strong>研究段階:</strong> ${getResearchPhase(item.growth)}</li>
+                            <li><strong>市場成熟度:</strong> ${getMarketMaturity(item.growth)}</li>
+                            <li><strong>将来性:</strong> ${getFuturePotential(item.growth)}</li>
+                        </ul>
+                    </div>
+                    <div class="detail-card">
+                        <h4>🔗 関連成分</h4>
+                        <ul class="detail-list">
+                            ${getRelatedIngredients(item.name)}
+                        </ul>
+                    </div>
+                `;
+            }
+
+            // 期間別推移
+            htmlContent += `
+                <div class="detail-card" style="grid-column: span 2;">
+                    <h4>📅 期間別推移</h4>
+                    <div id="trendChartContainer" style="height: 200px;">
+                        ${getPeriodTrend(item.name, type)}
+                    </div>
+                </div>
+            `;
+
+            htmlContent += '</div>';
+
+            // 関連論文サンプル
+            htmlContent += `
+                <div style="margin-top: 30px;">
+                    <h4>📚 関連論文サンプル（仮想データ）</h4>
+                    <ul class="detail-list">
+                        ${getSamplePapers(item.name)}
+                    </ul>
+                </div>
+            `;
+
+            modalBody.innerHTML = htmlContent;
+            modal.style.display = 'block';
+        }
+
+        // サポート関数
+        function getSubcategoriesForCategory(categoryName) {
+            const subcategories = {
+                'トレンド成分': ['proteins', 'beauty_ingredients', 'vitamins_minerals', 'plant_derived'],
+                '美容・エイジング': ['skin_care', 'anti_aging', 'parts_care'],
+                '健康・ウェルネス': ['basic_functions', 'internal_environment', 'health_markers'],
+                'メンタル・身体': ['mental_health', 'sleep', 'energy', 'cognitive'],
+                '新興成分': ['next_generation', 'biotech', 'synthetic']
+            };
+            const subs = subcategories[categoryName] || [];
+            return subs.map(s => `<li>${s}</li>`).join('');
+        }
+
+        function getIngredientsForCategory(categoryName) {
+            const categoryIngredients = {
+                'トレンド成分': ['コラーゲンペプチド', 'NMN', 'プロバイオティクス', 'CBD', 'アダプトゲン'],
+                '美容・エイジング': ['レチノール', 'ヒアルロン酸', 'セラミド', 'ペプチド', 'ナイアシンアミド'],
+                '健康・ウェルネス': ['ビタミンD', 'オメガ3', '亜鉛', 'マグネシウム', 'プロバイオティクス'],
+                'メンタル・身体': ['GABA', 'L-テアニン', 'メラトニン', 'カフェイン', 'ロディオラ'],
+                '新興成分': ['エクソソーム', 'スペルミジン', 'ウロリチンA', 'エルゴチオネイン', 'NAD+前駆体']
+            };
+            const ingredients = categoryIngredients[categoryName] || [];
+            return ingredients.map(i => `<li>${i}</li>`).join('');
+        }
+
+        function getResearchPhase(growth) {
+            if (growth > 70) return '急成長期';
+            if (growth > 40) return '成長期';
+            if (growth > 20) return '導入期';
+            return '安定期';
+        }
+
+        function getMarketMaturity(growth) {
+            if (growth > 60) return '新興市場';
+            if (growth > 30) return '成長市場';
+            return '成熟市場';
+        }
+
+        function getFuturePotential(growth) {
+            if (growth > 70) return '★★★★★ 非常に高い';
+            if (growth > 50) return '★★★★ 高い';
+            if (growth > 30) return '★★★ 中程度';
+            return '★★ 安定的';
+        }
+
+        function getRelatedIngredients(ingredientName) {
+            const related = {
+                'NMN': ['NAD+', 'ニコチンアミドリボシド', 'レスベラトロール'],
+                'コラーゲンペプチド': ['エラスチン', 'ヒアルロン酸', 'セラミド'],
+                'プロバイオティクス': ['プレバイオティクス', 'ポストバイオティクス', 'シンバイオティクス'],
+                'エクソソーム': ['幹細胞', 'サイトカイン', '成長因子']
+            };
+            const items = related[ingredientName] || ['データなし'];
+            return items.map(i => `<li>${i}</li>`).join('');
+        }
+
+        function getPeriodTrend(name, type) {
+            // 簡易的なトレンド表示
+            return `
+                <div style="display: flex; align-items: end; height: 150px; gap: 10px;">
+                    <div style="flex: 1; background: #667eea; height: 60%; display: flex; align-items: end; justify-content: center; color: white; border-radius: 5px;">2022</div>
+                    <div style="flex: 1; background: #667eea; height: 80%; display: flex; align-items: end; justify-content: center; color: white; border-radius: 5px;">2023</div>
+                    <div style="flex: 1; background: #764ba2; height: 100%; display: flex; align-items: end; justify-content: center; color: white; border-radius: 5px;">2024</div>
+                    <div style="flex: 1; background: #f093fb; height: 70%; display: flex; align-items: end; justify-content: center; color: white; border-radius: 5px;">2025</div>
+                </div>
+            `;
+        }
+
+        function getSamplePapers(topicName) {
+            const papers = [
+                `"${topicName}の効果に関する系統的レビューとメタ分析" (2024)`,
+                `"${topicName}の安全性と有効性：ランダム化比較試験" (2024)`,
+                `"${topicName}の新規応用：バイオアベイラビリティの改善" (2023)`,
+                `"${topicName}と健康：最新の科学的エビデンス" (2023)`,
+                `"${topicName}の作用メカニズム：分子レベルでの解析" (2022)`
+            ];
+            return papers.map(p => `<li>${p}</li>`).join('');
+        }
+
+        // モーダルを閉じる
+        function closeModal() {
+            document.getElementById('detailModal').style.display = 'none';
+        }
+
+        // モーダル外クリックで閉じる
+        window.onclick = function(event) {
+            const modal = document.getElementById('detailModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // 初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            updateDashboard();
+        });
+    </script>
+</body>
+</html>

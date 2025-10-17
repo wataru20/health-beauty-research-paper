@@ -1,0 +1,47 @@
+{
+  "generated_at": "2025-09-24T21:54:47.463552",
+  "predictions": {
+    "next_6months": [
+      {
+        "ingredient": "omega-3 skin health",
+        "potential": 0.8963797006442762,
+        "estimated_peak": "2025-Q3"
+      },
+      {
+        "ingredient": "NMN anti-aging",
+        "potential": 0.7395584951129353,
+        "estimated_peak": "2025-Q3"
+      }
+    ],
+    "next_1year": [
+      {
+        "ingredient": "glutathione skin whitening",
+        "potential": 0.8239820532337181,
+        "estimated_peak": "2025-Q3"
+      },
+      {
+        "ingredient": "NAD+ longevity",
+        "potential": 0.7086410396195117,
+        "estimated_peak": "2025-Q3"
+      }
+    ],
+    "next_2years": [
+      {
+        "ingredient": "probiotics skin microbiome",
+        "potential": 0.8237241815496104,
+        "estimated_peak": "2025-Q3"
+      }
+    ]
+  },
+  "growth_patterns": {
+    "exponential": [],
+    "linear": [],
+    "plateau": []
+  },
+  "commercialization_lag": {
+    "average_lag_years": 3.5,
+    "min_lag_years": 1.5,
+    "max_lag_years": 7.0
+  },
+  "model_confidence": 0.75
+}

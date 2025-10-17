@@ -1,0 +1,167 @@
+{
+  "start_time": "2025-09-25T15:49:52.272658",
+  "total_keywords": 206,
+  "papers_collected": 9087,
+  "categories_processed": {
+    "beauty_aging": {
+      "total_keywords": 30,
+      "total_papers": 1401,
+      "subcategories": {
+        "skin_care": {
+          "keywords": 14,
+          "papers": 624
+        },
+        "anti_aging": {
+          "keywords": 9,
+          "papers": 450
+        },
+        "parts_care": {
+          "keywords": 7,
+          "papers": 327
+        }
+      }
+    },
+    "health_wellness": {
+      "total_keywords": 25,
+      "total_papers": 1243,
+      "subcategories": {
+        "basic_functions": {
+          "keywords": 7,
+          "papers": 347
+        },
+        "internal_environment": {
+          "keywords": 9,
+          "papers": 447
+        },
+        "health_markers": {
+          "keywords": 9,
+          "papers": 449
+        }
+      }
+    },
+    "mental_physical_performance": {
+      "total_keywords": 30,
+      "total_papers": 990,
+      "subcategories": {
+        "mental_health": {
+          "keywords": 8,
+          "papers": 397
+        },
+        "sleep": {
+          "keywords": 7,
+          "papers": 346
+        },
+        "brain_vitality": {
+          "keywords": 8,
+          "papers": 147
+        },
+        "body_function": {
+          "keywords": 7,
+          "papers": 100
+        }
+      }
+    },
+    "diet_body_contouring": {
+      "total_keywords": 14,
+      "total_papers": 497,
+      "subcategories": {
+        "weight_management": {
+          "keywords": 9,
+          "papers": 297
+        },
+        "diet_methods": {
+          "keywords": 5,
+          "papers": 200
+        }
+      }
+    },
+    "lifecycle_gender": {
+      "total_keywords": 15,
+      "total_papers": 556,
+      "subcategories": {
+        "women": {
+          "keywords": 9,
+          "papers": 339
+        },
+        "men": {
+          "keywords": 6,
+          "papers": 217
+        }
+      }
+    },
+    "trending_ingredients": {
+      "total_keywords": 50,
+      "total_papers": 2396,
+      "subcategories": {
+        "proteins": {
+          "keywords": 7,
+          "papers": 350
+        },
+        "beauty_ingredients": {
+          "keywords": 8,
+          "papers": 400
+        },
+        "vitamins_minerals": {
+          "keywords": 9,
+          "papers": 450
+        },
+        "functional_ingredients": {
+          "keywords": 8,
+          "papers": 398
+        },
+        "probiotics_fermented": {
+          "keywords": 8,
+          "papers": 350
+        },
+        "plant_derived": {
+          "keywords": 10,
+          "papers": 448
+        }
+      }
+    },
+    "emerging_ingredients": {
+      "total_keywords": 12,
+      "total_papers": 596,
+      "subcategories": {
+        "next_generation": {
+          "keywords": 12,
+          "papers": 596
+        }
+      }
+    },
+    "concepts_diets": {
+      "total_keywords": 22,
+      "total_papers": 1010,
+      "subcategories": {
+        "product_categories": {
+          "keywords": 6,
+          "papers": 300
+        },
+        "lifestyle": {
+          "keywords": 6,
+          "papers": 300
+        },
+        "diet_methods": {
+          "keywords": 6,
+          "papers": 298
+        },
+        "business_models": {
+          "keywords": 4,
+          "papers": 112
+        }
+      }
+    },
+    "technology_formulation": {
+      "total_keywords": 8,
+      "total_papers": 398,
+      "subcategories": {
+        "delivery_systems": {
+          "keywords": 8,
+          "papers": 398
+        }
+      }
+    }
+  },
+  "errors": [],
+  "end_time": "2025-09-25T16:01:47.919063"
+}

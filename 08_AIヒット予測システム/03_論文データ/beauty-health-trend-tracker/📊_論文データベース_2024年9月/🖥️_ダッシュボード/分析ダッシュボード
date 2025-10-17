@@ -1,0 +1,1528 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>インナーケア・健康食品トレンド分析システム</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #333;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .card-title .emoji {
+            margin-right: 10px;
+            font-size: 1.5rem;
+        }
+
+        .hot-topics-list {
+            list-style: none;
+        }
+
+        .hot-topic-item {
+            background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+
+        .hot-topic-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .topic-name {
+            font-weight: bold;
+            flex: 1;
+        }
+
+        .topic-growth {
+            background: rgba(255,255,255,0.3);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .ingredient-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+        }
+
+        .ingredient-card {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+
+        .ingredient-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .ingredient-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .ingredient-score {
+            font-size: 1.2rem;
+        }
+
+        /* モーダル */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: white;
+            margin: 50px auto;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: slideIn 0.3s;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .modal-title {
+            font-size: 1.8rem;
+            color: #333;
+        }
+
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .detail-section {
+            margin-bottom: 25px;
+        }
+
+        .detail-section h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .detail-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .detail-label {
+            font-weight: bold;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .detail-value {
+            color: #333;
+            font-size: 1.1rem;
+        }
+
+        .evidence-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .evidence-item {
+            background: linear-gradient(90deg, #667eea10 0%, #764ba210 100%);
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .evidence-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .evidence-date {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .tab-button {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            color: #666;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+        }
+
+        .tab-button.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .prediction-detail {
+            background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .timeline-detail {
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .timeline-detail::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 10px;
+            bottom: 10px;
+            width: 2px;
+            background: #667eea;
+        }
+
+        .timeline-event {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .timeline-event::before {
+            content: '';
+            position: absolute;
+            left: -25px;
+            top: 5px;
+            width: 12px;
+            height: 12px;
+            background: #667eea;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        .research-papers {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .paper-item {
+            background: white;
+            border: 1px solid #e0e0e0;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+
+        .paper-item:hover {
+            border-color: #667eea;
+            transform: translateX(5px);
+        }
+
+        .paper-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .paper-info {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .alert-bar {
+            background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .alert-icon {
+            font-size: 1.5rem;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 20px;
+        }
+
+        .insights-box {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .insight-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .insight-icon {
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌿 インナーケア・健康食品トレンド分析システム</h1>
+            <div class="subtitle">4,251件の論文データから導き出された最新トレンド</div>
+        </div>
+
+        <div class="alert-bar">
+            <div class="alert-icon">📢</div>
+            <div>
+                <strong>今月の注目トレンド</strong><br>
+                アスタキサンチンとNAD+関連の研究が急増中！クリックして詳細を確認してください。
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <!-- ホットトピック -->
+            <div class="card">
+                <div class="card-title">
+                    <span class="emoji">🔥</span>
+                    ホットトピック
+                </div>
+                <div class="period-selector">
+                    <button class="period-btn active" onclick="changePeriod('30d')">30日</button>
+                    <button class="period-btn" onclick="changePeriod('90d')">90日</button>
+                    <button class="period-btn" onclick="changePeriod('1y')">1年</button>
+                    <button class="period-btn" onclick="changePeriod('2y')">2年</button>
+                </div>
+                <div class="ranking-tabs" style="margin: 15px 0;">
+                    <button class="ranking-btn active" onclick="changeRanking('growth')" style="padding: 6px 12px; margin-right: 5px; border: 1px solid #ddd; border-radius: 15px; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); color: white; cursor: pointer;">成長率順</button>
+                    <button class="ranking-btn" onclick="changeRanking('volume')" style="padding: 6px 12px; border: 1px solid #ddd; border-radius: 15px; background: #f0f0f0; color: #333; cursor: pointer;">論文数順</button>
+                </div>
+                <ul class="hot-topics-list" id="hotTopicsList">
+                    <!-- JavaScript で動的に生成 -->
+                </ul>
+            </div>
+
+            <!-- 実用化推奨成分 -->
+            <div class="card">
+                <div class="card-title">
+                    <span class="emoji">💊</span>
+                    実用化推奨成分TOP10
+                </div>
+                <div class="period-selector" style="margin-bottom: 15px;">
+                    <button class="period-btn ingredient-period active" onclick="changeIngredientPeriod('30d')">30日</button>
+                    <button class="period-btn ingredient-period" onclick="changeIngredientPeriod('90d')">90日</button>
+                    <button class="period-btn ingredient-period" onclick="changeIngredientPeriod('1y')">1年</button>
+                    <button class="period-btn ingredient-period" onclick="changeIngredientPeriod('2y')">2年</button>
+                </div>
+                <div class="ingredient-grid" id="ingredientGrid">
+                    <!-- JavaScript で動的に生成 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 詳細モーダル -->
+    <div id="detailModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">詳細情報</h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+
+            <div class="tabs">
+                <button class="tab-button active" onclick="switchTab('overview')">概要</button>
+                <button class="tab-button" onclick="switchTab('research')">研究データ</button>
+                <button class="tab-button" onclick="switchTab('market')">市場分析</button>
+                <button class="tab-button" onclick="switchTab('prediction')">将来予測</button>
+            </div>
+
+            <div id="modalContent">
+                <!-- 動的に内容を挿入 -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // データストア（実際のシステムではAPIから取得）
+        const dataStore = {
+            hotTopicsByPeriod: {
+                '30d': [
+                {
+                    id: 'astaxanthin',
+                    name: 'アスタキサンチン UV防御',
+                    growth: 188,
+                    papers: 12,
+                    summary: '強力な抗酸化作用とUV防御効果により、サプリメント市場での需要が急増',
+                    keyFindings: [
+                        'UV-Bによる皮膚ダメージを最大60%軽減',
+                        'コラーゲン産生を1.5倍促進',
+                        '活性酸素除去能力がビタミンEの550倍'
+                    ],
+                    marketSize: '2024年予測：450億円',
+                    applications: ['美容サプリメント', '日焼け防止サプリ', 'エイジングケア製品'],
+                    dosage: '6-12mg/日',
+                    safety: '長期摂取でも安全性確認済み',
+                    recentPapers: [
+                        {title: 'Astaxanthin protects against UV-induced photoaging', date: '2024-11', journal: 'J Dermatol Sci'},
+                        {title: 'Clinical trial of astaxanthin supplementation', date: '2024-10', journal: 'Nutrients'}
+                    ]
+                },
+                {
+                    id: 'glutathione',
+                    name: 'グルタチオン 美白',
+                    growth: 176,
+                    papers: 8,
+                    summary: 'メラニン生成抑制と肝機能サポートで内側からの美白効果',
+                    keyFindings: [
+                        'メラニン生成を40%抑制',
+                        '肝臓のデトックス機能向上',
+                        'ビタミンCとの相乗効果確認'
+                    ],
+                    marketSize: '2024年予測：380億円',
+                    applications: ['美白サプリメント', '肝機能サポート', 'デトックス製品'],
+                    dosage: '250-500mg/日',
+                    safety: '適正用量での安全性確認',
+                    recentPapers: [
+                        {title: 'Glutathione and skin whitening mechanisms', date: '2024-09', journal: 'Cosmetics'}
+                    ]
+                },
+                {
+                    id: 'nad',
+                    name: 'NAD+ 長寿',
+                    growth: 143,
+                    papers: 15,
+                    summary: '細胞エネルギー代謝の改善により健康寿命延伸効果',
+                    keyFindings: [
+                        '細胞内NAD+レベルを2倍に増加',
+                        'サーチュイン活性化による老化抑制',
+                        'ミトコンドリア機能改善'
+                    ],
+                    marketSize: '2024年予測：520億円',
+                    applications: ['アンチエイジングサプリ', 'エネルギー補給', '認知機能サポート'],
+                    dosage: '250-500mg/日',
+                    safety: '臨床試験で安全性確認',
+                    recentPapers: [
+                        {title: 'NAD+ restoration and healthy aging', date: '2024-08', journal: 'Cell Metabolism'}
+                    ]
+                },
+                {
+                    id: 'coq10',
+                    name: 'CoQ10 しわ改善',
+                    growth: 125,
+                    papers: 9,
+                    summary: '細胞エネルギー産生とコラーゲン保護によるしわ改善',
+                    keyFindings: [
+                        'しわの深さを平均30%減少',
+                        '肌の弾力性20%向上',
+                        '細胞エネルギー産生促進'
+                    ],
+                    marketSize: '2024年予測：290億円',
+                    applications: ['エイジングケアサプリ', '美容ドリンク', 'スキンケア併用'],
+                    dosage: '100-200mg/日',
+                    safety: '長期使用の安全性確立',
+                    recentPapers: [
+                        {title: 'CoQ10 effects on skin aging', date: '2024-07', journal: 'Skin Pharmacol'}
+                    ]
+                },
+                {
+                    id: 'probiotics',
+                    name: 'プロバイオティクス',
+                    growth: 105,
+                    papers: 18,
+                    summary: '腸内環境改善による肌質向上と免疫力強化',
+                    keyFindings: [
+                        '肌の水分量15%増加',
+                        '炎症マーカー30%減少',
+                        'バリア機能強化'
+                    ],
+                    marketSize: '2024年予測：680億円',
+                    applications: ['腸活サプリメント', '美容ヨーグルト', '機能性食品'],
+                    dosage: '100億CFU/日',
+                    safety: 'GRAS認定取得',
+                    recentPapers: [
+                        {title: 'Gut-skin axis and probiotics', date: '2024-06', journal: 'Microbiome'}
+                    ]
+                }
+            ],
+                '90d': [
+                    {
+                        id: 'curcumin',
+                        name: 'クルクミン 抗炎症',
+                        growth: 195,
+                        papers: 22,
+                        summary: 'ターメリック由来の強力な抗炎症成分として注目度上昇',
+                        keyFindings: [
+                            '炎症マーカーを45%減少',
+                            '関節痛改善効果を確認',
+                            'バイオアベイラビリティ改善技術の進展'
+                        ],
+                        marketSize: '2024年予測：320億円',
+                        applications: ['関節サポート', '美容サプリ', '機能性飲料'],
+                        dosage: '500-1000mg/日',
+                        safety: '長期摂取安全性確認'
+                    },
+                    {
+                        id: 'vitamin_d',
+                        name: 'ビタミンD 肌健康',
+                        growth: 174,
+                        papers: 25,
+                        summary: '免疫機能と肌健康への多面的効果が明らかに',
+                        keyFindings: [
+                            '肌バリア機能を25%向上',
+                            '免疫細胞活性化',
+                            '冬季うつ症状の改善'
+                        ],
+                        marketSize: '2024年予測：410億円',
+                        applications: ['免疫サポート', '美容サプリ', '骨健康'],
+                        dosage: '1000-4000 IU/日',
+                        safety: '血中濃度モニタリング推奨'
+                    },
+                    {
+                        id: 'nad_90d',
+                        name: 'NAD+ 長寿',
+                        growth: 149,
+                        papers: 18,
+                        summary: '細胞老化抑制メカニズムの解明が進展',
+                        keyFindings: [
+                            'ミトコンドリア機能30%改善',
+                            'DNA修復能力向上',
+                            '認知機能改善効果'
+                        ],
+                        marketSize: '2024年予測：520億円',
+                        applications: ['アンチエイジング', '認知サポート', 'エネルギー補給'],
+                        dosage: '250-500mg/日',
+                        safety: '臨床試験進行中'
+                    },
+                    {
+                        id: 'collagen_90d',
+                        name: 'コラーゲン サプリ',
+                        growth: 135,
+                        papers: 35,
+                        summary: '低分子コラーゲンペプチドの吸収率向上',
+                        keyFindings: [
+                            '肌弾力性20%向上',
+                            '関節可動域改善',
+                            '筋肉量維持効果'
+                        ],
+                        marketSize: '2024年予測：850億円',
+                        applications: ['美容飲料', 'プロテイン補給', '関節ケア'],
+                        dosage: '5-10g/日',
+                        safety: 'アレルギー注意'
+                    },
+                    {
+                        id: 'nmn_90d',
+                        name: 'NMN 抗老化',
+                        growth: 134,
+                        papers: 20,
+                        summary: 'NAD+ブースターとしての効果実証進む',
+                        keyFindings: [
+                            '血管年齢の若返り',
+                            '運動能力向上',
+                            'インスリン感受性改善'
+                        ],
+                        marketSize: '2024年予測：450億円',
+                        applications: ['長寿サプリ', 'スポーツ栄養', '糖尿病予防'],
+                        dosage: '250-500mg/日',
+                        safety: '長期安全性データ蓄積中'
+                    }
+                ],
+                '1y': [
+                    {
+                        id: 'nmn_1y',
+                        name: 'NMN 抗老化',
+                        growth: 199,
+                        papers: 45,
+                        summary: '1年間で最も成長した抗老化成分',
+                        keyFindings: [
+                            '寿命延長効果の動物実験成功',
+                            'ヒト臨床試験で有効性確認',
+                            '製造コスト50%削減達成'
+                        ],
+                        marketSize: '2024年予測：600億円',
+                        applications: ['プレミアムサプリ', '医療機関向け', 'ペット用品'],
+                        dosage: '250-1000mg/日',
+                        safety: '複数の安全性試験クリア'
+                    },
+                    {
+                        id: 'zinc_1y',
+                        name: '亜鉛 ニキビ治療',
+                        growth: 172,
+                        papers: 38,
+                        summary: '免疫強化と肌トラブル改善の二重効果',
+                        keyFindings: [
+                            'ニキビ発生率60%減少',
+                            '創傷治癒促進',
+                            'テストステロン調整'
+                        ],
+                        marketSize: '2024年予測：280億円',
+                        applications: ['ニキビケア', '免疫サポート', '育毛サプリ'],
+                        dosage: '15-30mg/日',
+                        safety: '銅との相互作用注意'
+                    },
+                    {
+                        id: 'vitamin_d_1y',
+                        name: 'ビタミンD 総合健康',
+                        growth: 164,
+                        papers: 52,
+                        summary: 'コロナ禍で重要性が再認識された必須栄養素',
+                        keyFindings: [
+                            '感染症リスク40%低減',
+                            '骨密度15%向上',
+                            '季節性うつ改善'
+                        ],
+                        marketSize: '2024年予測：550億円',
+                        applications: ['総合ビタミン', '高齢者向け', '子供向け'],
+                        dosage: '2000-5000 IU/日',
+                        safety: '定期的な血中濃度測定推奨'
+                    },
+                    {
+                        id: 'curcumin_1y',
+                        name: 'クルクミン 総合効果',
+                        growth: 137,
+                        papers: 68,
+                        summary: '多様な健康効果が科学的に実証',
+                        keyFindings: [
+                            '認知症予防効果',
+                            'がん予防の可能性',
+                            '肝機能改善'
+                        ],
+                        marketSize: '2024年予測：420億円',
+                        applications: ['認知症予防', '肝機能サポート', '抗がんサプリ'],
+                        dosage: '500-2000mg/日',
+                        safety: '胆石症患者は注意'
+                    },
+                    {
+                        id: 'biotin_1y',
+                        name: 'ビオチン 育毛',
+                        growth: 121,
+                        papers: 28,
+                        summary: '髪・爪・肌の三位一体ケア成分',
+                        keyFindings: [
+                            '抜け毛30%減少',
+                            '爪の強度向上',
+                            '肌荒れ改善'
+                        ],
+                        marketSize: '2024年予測：180億円',
+                        applications: ['育毛サプリ', '美容サプリ', 'ネイルケア'],
+                        dosage: '5-10mg/日',
+                        safety: '水溶性ビタミンで安全性高'
+                    }
+                ],
+                '2y': [
+                    {
+                        id: 'nad_2y',
+                        name: 'NAD+ 長寿革命',
+                        growth: 170,
+                        papers: 85,
+                        summary: '2年間で最も注目された長寿関連成分',
+                        keyFindings: [
+                            '健康寿命5年延長の可能性',
+                            '加齢性疾患の予防効果',
+                            'エピジェネティクス制御'
+                        ],
+                        marketSize: '2024年予測：800億円',
+                        applications: ['長寿医療', 'プレミアムサプリ', '予防医学'],
+                        dosage: '500-1000mg/日',
+                        safety: '長期安全性確立'
+                    },
+                    {
+                        id: 'coq10_2y',
+                        name: 'CoQ10 心臓健康',
+                        growth: 168,
+                        papers: 72,
+                        summary: '心臓健康と美容の両立成分として定着',
+                        keyFindings: [
+                            '心機能20%改善',
+                            'スタチン副作用軽減',
+                            'エネルギー産生促進'
+                        ],
+                        marketSize: '2024年予測：450億円',
+                        applications: ['心臓サポート', 'スポーツ栄養', '美容サプリ'],
+                        dosage: '100-300mg/日',
+                        safety: '医薬品相互作用確認必要'
+                    },
+                    {
+                        id: 'vitamin_c_2y',
+                        name: 'ビタミンC メガドース',
+                        growth: 119,
+                        papers: 125,
+                        summary: '高用量療法の有効性が明らかに',
+                        keyFindings: [
+                            '免疫機能最大化',
+                            'コラーゲン合成促進',
+                            '抗がん作用の研究進展'
+                        ],
+                        marketSize: '2024年予測：650億円',
+                        applications: ['免疫強化', '美白サプリ', '点滴療法'],
+                        dosage: '1000-3000mg/日',
+                        safety: '腎結石リスク注意'
+                    },
+                    {
+                        id: 'vitamin_e_2y',
+                        name: 'ビタミンE 抗酸化',
+                        growth: 116,
+                        papers: 98,
+                        summary: '脂溶性抗酸化ビタミンの再評価',
+                        keyFindings: [
+                            '細胞膜保護作用',
+                            '神経保護効果',
+                            '生殖機能サポート'
+                        ],
+                        marketSize: '2024年予測：380億円',
+                        applications: ['アンチエイジング', '不妊治療', '認知症予防'],
+                        dosage: '400-800 IU/日',
+                        safety: '抗凝固薬との相互作用'
+                    },
+                    {
+                        id: 'collagen_2y',
+                        name: 'コラーゲン 次世代',
+                        growth: 110,
+                        papers: 156,
+                        summary: '第三世代コラーゲンの開発進む',
+                        keyFindings: [
+                            'トリペプチド技術確立',
+                            '吸収率90%達成',
+                            'ヴィーガン対応製品開発'
+                        ],
+                        marketSize: '2024年予測：1200億円',
+                        applications: ['機能性表示食品', '医療用', 'スポーツ栄養'],
+                        dosage: '3-5g/日',
+                        safety: 'アレルギー表示義務化'
+                    }
+                ]
+            },
+            ingredientsByPeriod: {
+                '30d': [
+                    { name: 'プロバイオティクス', evidence: 18, growth: '+105%' },
+                    { name: 'NAD+', evidence: 15, growth: '+143%' },
+                    { name: 'アスタキサンチン', evidence: 12, growth: '+188%' },
+                    { name: 'CoQ10', evidence: 9, growth: '+125%' },
+                    { name: 'グルタチオン', evidence: 8, growth: '+176%' },
+                    { name: 'ビタミンC', evidence: 7, growth: '+85%' },
+                    { name: 'オメガ3', evidence: 6, growth: '+92%' },
+                    { name: 'クルクミン', evidence: 5, growth: '+78%' },
+                    { name: 'ビタミンD', evidence: 4, growth: '+65%' },
+                    { name: 'NMN', evidence: 3, growth: '+95%' }
+                ],
+                '90d': [
+                    { name: 'コラーゲン', evidence: 35, growth: '+135%' },
+                    { name: 'ビタミンD', evidence: 25, growth: '+174%' },
+                    { name: 'クルクミン', evidence: 22, growth: '+195%' },
+                    { name: 'NMN', evidence: 20, growth: '+134%' },
+                    { name: 'NAD+', evidence: 18, growth: '+149%' },
+                    { name: 'プロバイオティクス', evidence: 16, growth: '+98%' },
+                    { name: 'オメガ3', evidence: 14, growth: '+88%' },
+                    { name: 'ビタミンE', evidence: 12, growth: '+72%' },
+                    { name: 'アスタキサンチン', evidence: 11, growth: '+125%' },
+                    { name: 'グリーンティー', evidence: 10, growth: '+67%' }
+                ],
+                '1y': [
+                    { name: 'クルクミン', evidence: 68, growth: '+137%' },
+                    { name: 'ビタミンD', evidence: 52, growth: '+164%' },
+                    { name: 'NMN', evidence: 45, growth: '+199%' },
+                    { name: '亜鉛', evidence: 38, growth: '+172%' },
+                    { name: 'コラーゲン', evidence: 35, growth: '+95%' },
+                    { name: 'ビオチン', evidence: 28, growth: '+121%' },
+                    { name: 'プロバイオティクス', evidence: 26, growth: '+87%' },
+                    { name: 'オメガ3', evidence: 24, growth: '+79%' },
+                    { name: 'ビタミンE', evidence: 22, growth: '+68%' },
+                    { name: 'NAD+', evidence: 20, growth: '+148%' }
+                ],
+                '2y': [
+                    { name: 'コラーゲン', evidence: 156, growth: '+110%' },
+                    { name: 'ビタミンC', evidence: 125, growth: '+119%' },
+                    { name: 'ビタミンE', evidence: 98, growth: '+116%' },
+                    { name: 'NAD+', evidence: 85, growth: '+170%' },
+                    { name: 'CoQ10', evidence: 72, growth: '+168%' },
+                    { name: 'プロバイオティクス', evidence: 68, growth: '+75%' },
+                    { name: 'クルクミン', evidence: 65, growth: '+85%' },
+                    { name: 'NMN', evidence: 58, growth: '+145%' },
+                    { name: 'ビタミンD', evidence: 55, growth: '+92%' },
+                    { name: 'オメガ3', evidence: 48, growth: '+78%' }
+                ]
+            },
+            ingredients: [
+                {
+                    id: 'nmn',
+                    name: 'NMN',
+                    evidence: 51,
+                    safety: '高',
+                    efficacy: '細胞老化抑制、エネルギー代謝改善',
+                    mechanism: 'NAD+前駆体として細胞内NAD+レベルを上昇',
+                    clinicalTrials: 12,
+                    commercialized: 8,
+                    trends: [85, 92, 98, 105, 112, 125]
+                },
+                {
+                    id: 'collagen',
+                    name: 'コラーゲン',
+                    evidence: 198,
+                    safety: '高',
+                    efficacy: '肌弾力改善、関節サポート',
+                    mechanism: 'コラーゲンペプチドによる線維芽細胞活性化',
+                    clinicalTrials: 45,
+                    commercialized: 120,
+                    trends: [120, 118, 122, 125, 130, 135]
+                },
+                {
+                    id: 'probiotics_ing',
+                    name: 'プロバイオティクス',
+                    evidence: 99,
+                    safety: '高',
+                    efficacy: '腸内環境改善、免疫調整、肌質向上',
+                    mechanism: '腸内細菌叢の最適化による全身への影響',
+                    clinicalTrials: 28,
+                    commercialized: 65,
+                    trends: [70, 75, 82, 90, 98, 105]
+                },
+                {
+                    id: 'vitaminc',
+                    name: 'ビタミンC',
+                    evidence: 105,
+                    safety: '高',
+                    efficacy: '抗酸化、コラーゲン合成、美白',
+                    mechanism: 'アスコルビン酸による酸化ストレス軽減',
+                    clinicalTrials: 38,
+                    commercialized: 200,
+                    trends: [100, 102, 105, 108, 110, 112]
+                },
+                {
+                    id: 'nad_ing',
+                    name: 'NAD+',
+                    evidence: 99,
+                    safety: '高',
+                    efficacy: '細胞エネルギー改善、老化抑制',
+                    mechanism: 'サーチュイン活性化、ミトコンドリア機能向上',
+                    clinicalTrials: 15,
+                    commercialized: 10,
+                    trends: [60, 75, 90, 110, 130, 143]
+                }
+            ]
+        };
+
+        // 現在選択されている期間とランキング種別
+        let currentPeriod = '30d';
+        let currentRanking = 'growth';
+        let currentIngredientPeriod = '30d';
+
+        // 期間を変更
+        function changePeriod(period) {
+            currentPeriod = period;
+
+            // ボタンのアクティブ状態を更新
+            document.querySelectorAll('.period-selector .period-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // ホットトピックを再表示
+            displayHotTopics();
+        }
+
+        // ランキング種別を変更
+        function changeRanking(rankingType) {
+            currentRanking = rankingType;
+
+            // ボタンのアクティブ状態を更新
+            document.querySelectorAll('.ranking-btn').forEach(btn => {
+                if (rankingType === 'growth') {
+                    if (btn.textContent === '成長率順') {
+                        btn.style.background = 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)';
+                        btn.style.color = 'white';
+                    } else {
+                        btn.style.background = '#f0f0f0';
+                        btn.style.color = '#333';
+                    }
+                } else {
+                    if (btn.textContent === '論文数順') {
+                        btn.style.background = 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)';
+                        btn.style.color = 'white';
+                    } else {
+                        btn.style.background = '#f0f0f0';
+                        btn.style.color = '#333';
+                    }
+                }
+            });
+
+            // ホットトピックを再表示
+            displayHotTopics();
+        }
+
+        // ホットトピックスを表示
+        function displayHotTopics() {
+            const container = document.getElementById('hotTopicsList');
+            container.innerHTML = '';
+
+            let topics = [...dataStore.hotTopicsByPeriod[currentPeriod]];
+
+            // ランキング種別によってソート
+            if (currentRanking === 'growth') {
+                topics.sort((a, b) => b.growth - a.growth);
+            } else {
+                topics.sort((a, b) => b.papers - a.papers);
+            }
+
+            // 上位5件のみ表示
+            topics.slice(0, 5).forEach((topic, index) => {
+                const li = document.createElement('li');
+                li.className = 'hot-topic-item';
+                li.onclick = () => showTopicDetail(topic);
+
+                if (currentRanking === 'growth') {
+                    li.innerHTML = `
+                        <span class="topic-name">${index + 1}. ${topic.name}</span>
+                        <span class="topic-growth">+${topic.growth}%</span>
+                    `;
+                } else {
+                    li.innerHTML = `
+                        <span class="topic-name">${index + 1}. ${topic.name}</span>
+                        <span class="topic-growth">${topic.papers}件</span>
+                    `;
+                }
+                container.appendChild(li);
+            });
+        }
+
+        // 成分の期間を変更
+        function changeIngredientPeriod(period) {
+            currentIngredientPeriod = period;
+
+            // ボタンのアクティブ状態を更新
+            document.querySelectorAll('.ingredient-period').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // 成分を再表示
+            displayIngredients();
+        }
+
+        // 実用化成分を表示
+        function displayIngredients() {
+            const container = document.getElementById('ingredientGrid');
+            container.innerHTML = '';
+
+            const ingredients = dataStore.ingredientsByPeriod[currentIngredientPeriod];
+
+            ingredients.forEach(ingredient => {
+                const div = document.createElement('div');
+                div.className = 'ingredient-card';
+
+                // 詳細モーダル用のデータを探す
+                const detailData = dataStore.ingredients.find(ing => ing.name === ingredient.name);
+                if (detailData) {
+                    div.onclick = () => showIngredientDetail(detailData);
+                }
+
+                div.innerHTML = `
+                    <div class="ingredient-name">${ingredient.name}</div>
+                    <div class="ingredient-score">${ingredient.evidence}件</div>
+                    <div style="font-size: 0.8rem; opacity: 0.9; margin-top: 3px;">${ingredient.growth}</div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // トピック詳細を表示
+        function showTopicDetail(topic) {
+            document.getElementById('modalTitle').textContent = topic.name;
+            const modal = document.getElementById('detailModal');
+            modal.style.display = 'block';
+
+            // デフォルトで概要タブを表示
+            switchTab('overview');
+
+            // コンテンツを設定
+            window.currentDetail = {
+                type: 'topic',
+                data: topic
+            };
+
+            updateModalContent();
+        }
+
+        // 成分詳細を表示
+        function showIngredientDetail(ingredient) {
+            document.getElementById('modalTitle').textContent = ingredient.name;
+            const modal = document.getElementById('detailModal');
+            modal.style.display = 'block';
+
+            // デフォルトで概要タブを表示
+            switchTab('overview');
+
+            // コンテンツを設定
+            window.currentDetail = {
+                type: 'ingredient',
+                data: ingredient
+            };
+
+            updateModalContent();
+        }
+
+        // タブ切り替え
+        function switchTab(tabName) {
+            // タブボタンのアクティブ状態を更新
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target?.classList.add('active');
+
+            // コンテンツを更新
+            window.currentTab = tabName;
+            updateModalContent();
+        }
+
+        // モーダルコンテンツを更新
+        function updateModalContent() {
+            const container = document.getElementById('modalContent');
+            const detail = window.currentDetail;
+            const tab = window.currentTab || 'overview';
+
+            if (!detail) return;
+
+            let content = '';
+
+            if (detail.type === 'topic') {
+                const topic = detail.data;
+
+                switch(tab) {
+                    case 'overview':
+                        content = `
+                            <div class="detail-section">
+                                <h3>📊 概要</h3>
+                                <p>${topic.summary}</p>
+                            </div>
+
+                            <div class="detail-section">
+                                <h3>🔬 主要な発見</h3>
+                                <ul>
+                                    ${topic.keyFindings.map(finding => `<li>${finding}</li>`).join('')}
+                                </ul>
+                            </div>
+
+                            <div class="detail-grid">
+                                <div class="detail-item">
+                                    <div class="detail-label">成長率</div>
+                                    <div class="detail-value">+${topic.growth}%</div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-label">関連論文数</div>
+                                    <div class="detail-value">${topic.papers}件</div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-label">推奨用量</div>
+                                    <div class="detail-value">${topic.dosage}</div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-label">安全性</div>
+                                    <div class="detail-value">${topic.safety}</div>
+                                </div>
+                            </div>
+                        `;
+                        break;
+
+                    case 'research':
+                        content = `
+                            <div class="detail-section">
+                                <h3>📚 最新研究論文</h3>
+                                <div class="research-papers">
+                                    ${topic.recentPapers.map(paper => `
+                                        <div class="paper-item">
+                                            <div class="paper-title">${paper.title}</div>
+                                            <div class="paper-info">${paper.journal} - ${paper.date}</div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+
+                            <div class="detail-section">
+                                <h3>🧪 研究トレンド</h3>
+                                <div class="chart-container">
+                                    <canvas id="researchTrendChart"></canvas>
+                                </div>
+                            </div>
+                        `;
+                        setTimeout(() => createResearchChart(topic), 100);
+                        break;
+
+                    case 'market':
+                        content = `
+                            <div class="detail-section">
+                                <h3>💰 市場分析</h3>
+                                <div class="detail-item">
+                                    <div class="detail-label">市場規模</div>
+                                    <div class="detail-value">${topic.marketSize}</div>
+                                </div>
+                            </div>
+
+                            <div class="detail-section">
+                                <h3>🎯 応用分野</h3>
+                                <ul>
+                                    ${topic.applications.map(app => `<li>${app}</li>`).join('')}
+                                </ul>
+                            </div>
+
+                            <div class="insights-box">
+                                <h3>💡 マーケティングインサイト</h3>
+                                <div class="insight-item">
+                                    <span class="insight-icon">📈</span>
+                                    <span>前年比${Math.round(topic.growth * 0.7)}%の市場成長</span>
+                                </div>
+                                <div class="insight-item">
+                                    <span class="insight-icon">👥</span>
+                                    <span>主要ターゲット：30-50代女性</span>
+                                </div>
+                                <div class="insight-item">
+                                    <span class="insight-icon">🏪</span>
+                                    <span>EC販売が全体の65%を占める</span>
+                                </div>
+                            </div>
+                        `;
+                        break;
+
+                    case 'prediction':
+                        content = `
+                            <div class="detail-section">
+                                <h3>🔮 将来予測</h3>
+                                <div class="timeline-detail">
+                                    <div class="timeline-event">
+                                        <strong>3ヶ月後</strong>
+                                        <p>研究論文数が${topic.papers * 2}件に増加予測</p>
+                                    </div>
+                                    <div class="timeline-event">
+                                        <strong>6ヶ月後</strong>
+                                        <p>新製品ローンチが${Math.round(topic.growth * 0.1)}件予想</p>
+                                    </div>
+                                    <div class="timeline-event">
+                                        <strong>1年後</strong>
+                                        <p>市場規模が1.5倍に拡大見込み</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="prediction-detail">
+                                <h3>📊 成長予測グラフ</h3>
+                                <div class="chart-container">
+                                    <canvas id="predictionChart"></canvas>
+                                </div>
+                            </div>
+                        `;
+                        setTimeout(() => createPredictionChart(topic), 100);
+                        break;
+                }
+            } else if (detail.type === 'ingredient') {
+                const ingredient = detail.data;
+
+                switch(tab) {
+                    case 'overview':
+                        content = `
+                            <div class="detail-section">
+                                <h3>📊 基本情報</h3>
+                                <div class="detail-grid">
+                                    <div class="detail-item">
+                                        <div class="detail-label">エビデンス数</div>
+                                        <div class="detail-value">${ingredient.evidence}件</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="detail-label">安全性評価</div>
+                                        <div class="detail-value">${ingredient.safety}</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="detail-label">臨床試験数</div>
+                                        <div class="detail-value">${ingredient.clinicalTrials}件</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="detail-label">製品化数</div>
+                                        <div class="detail-value">${ingredient.commercialized}件</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="detail-section">
+                                <h3>💊 効果・効能</h3>
+                                <p>${ingredient.efficacy}</p>
+                            </div>
+
+                            <div class="detail-section">
+                                <h3>🔬 作用メカニズム</h3>
+                                <p>${ingredient.mechanism}</p>
+                            </div>
+                        `;
+                        break;
+
+                    case 'research':
+                        content = `
+                            <div class="detail-section">
+                                <h3>📊 研究動向</h3>
+                                <div class="chart-container">
+                                    <canvas id="ingredientTrendChart"></canvas>
+                                </div>
+                            </div>
+
+                            <div class="detail-section">
+                                <h3>🧪 臨床試験情報</h3>
+                                <div class="detail-item">
+                                    <div class="detail-label">実施済み臨床試験</div>
+                                    <div class="detail-value">${ingredient.clinicalTrials}件</div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-label">進行中の試験</div>
+                                    <div class="detail-value">${Math.round(ingredient.clinicalTrials * 0.3)}件</div>
+                                </div>
+                            </div>
+                        `;
+                        setTimeout(() => createIngredientChart(ingredient), 100);
+                        break;
+
+                    case 'market':
+                        content = `
+                            <div class="detail-section">
+                                <h3>📈 市場状況</h3>
+                                <div class="detail-item">
+                                    <div class="detail-label">製品化数</div>
+                                    <div class="detail-value">${ingredient.commercialized}製品</div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-label">市場成長率</div>
+                                    <div class="detail-value">年率${Math.round(ingredient.trends[5] / ingredient.trends[0] * 20)}%</div>
+                                </div>
+                            </div>
+
+                            <div class="insights-box">
+                                <h3>💡 商品化のポイント</h3>
+                                <div class="insight-item">
+                                    <span class="insight-icon">✅</span>
+                                    <span>エビデンスレベルが高く信頼性確保</span>
+                                </div>
+                                <div class="insight-item">
+                                    <span class="insight-icon">✅</span>
+                                    <span>安全性データが豊富</span>
+                                </div>
+                                <div class="insight-item">
+                                    <span class="insight-icon">✅</span>
+                                    <span>消費者認知度の向上中</span>
+                                </div>
+                            </div>
+                        `;
+                        break;
+
+                    case 'prediction':
+                        content = `
+                            <div class="detail-section">
+                                <h3>🔮 成長予測</h3>
+                                <div class="chart-container">
+                                    <canvas id="ingredientPredictionChart"></canvas>
+                                </div>
+                            </div>
+
+                            <div class="prediction-detail">
+                                <h3>📅 マイルストーン予測</h3>
+                                <div class="timeline-detail">
+                                    <div class="timeline-event">
+                                        <strong>2025 Q1</strong>
+                                        <p>新規製品ローンチ${Math.round(ingredient.commercialized * 0.1)}件予想</p>
+                                    </div>
+                                    <div class="timeline-event">
+                                        <strong>2025 Q2</strong>
+                                        <p>市場規模20%拡大見込み</p>
+                                    </div>
+                                    <div class="timeline-event">
+                                        <strong>2025 Q4</strong>
+                                        <p>主要ブランド参入により競争激化</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        setTimeout(() => createIngredientPredictionChart(ingredient), 100);
+                        break;
+                }
+            }
+
+            container.innerHTML = content;
+        }
+
+        // チャート作成関数
+        function createResearchChart(topic) {
+            const ctx = document.getElementById('researchTrendChart');
+            if (!ctx) return;
+
+            new Chart(ctx.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: ['2022', '2023 Q1', '2023 Q2', '2023 Q3', '2023 Q4', '2024'],
+                    datasets: [{
+                        label: '研究論文数',
+                        data: [2, 3, 4, 5, 8, 12],
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        function createPredictionChart(topic) {
+            const ctx = document.getElementById('predictionChart');
+            if (!ctx) return;
+
+            new Chart(ctx.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: ['現在', '3ヶ月後', '6ヶ月後', '9ヶ月後', '12ヶ月後'],
+                    datasets: [{
+                        label: '成長率予測',
+                        data: [topic.growth, topic.growth * 1.2, topic.growth * 1.5, topic.growth * 1.7, topic.growth * 2],
+                        borderColor: '#764ba2',
+                        backgroundColor: 'rgba(118, 75, 162, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        function createIngredientChart(ingredient) {
+            const ctx = document.getElementById('ingredientTrendChart');
+            if (!ctx) return;
+
+            new Chart(ctx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['2019', '2020', '2021', '2022', '2023', '2024'],
+                    datasets: [{
+                        label: '研究論文数',
+                        data: ingredient.trends,
+                        backgroundColor: 'rgba(102, 126, 234, 0.7)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        function createIngredientPredictionChart(ingredient) {
+            const ctx = document.getElementById('ingredientPredictionChart');
+            if (!ctx) return;
+
+            const lastValue = ingredient.trends[ingredient.trends.length - 1];
+            new Chart(ctx.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: ['2024', '2025 Q1', '2025 Q2', '2025 Q3', '2025 Q4', '2026'],
+                    datasets: [{
+                        label: '予測値',
+                        data: [lastValue, lastValue * 1.1, lastValue * 1.25, lastValue * 1.4, lastValue * 1.6, lastValue * 1.8],
+                        borderColor: '#f5576c',
+                        backgroundColor: 'rgba(245, 87, 108, 0.1)',
+                        borderDash: [5, 5],
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        // モーダルを閉じる
+        function closeModal() {
+            document.getElementById('detailModal').style.display = 'none';
+        }
+
+        // ESCキーでモーダルを閉じる
+        window.onclick = function(event) {
+            const modal = document.getElementById('detailModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // 初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            displayHotTopics();
+            displayIngredients();
+        });
+
+        // データの自動更新シミュレーション（実際はAPIから取得）
+        setInterval(() => {
+            // リアルタイムデータ更新のシミュレーション
+            dataStore.hotTopics.forEach(topic => {
+                topic.growth += Math.random() * 10 - 5; // -5 to +5
+                topic.growth = Math.max(0, topic.growth);
+            });
+
+            // 表示を更新（モーダルが開いていない場合のみ）
+            const modal = document.getElementById('detailModal');
+            if (modal.style.display !== 'block') {
+                displayHotTopics();
+            }
+        }, 30000); // 30秒ごとに更新
+    </script>
+</body>
+</html>

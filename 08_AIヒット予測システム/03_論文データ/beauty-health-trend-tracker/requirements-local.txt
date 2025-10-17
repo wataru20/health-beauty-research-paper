@@ -1,0 +1,20 @@
+# Core dependencies
+requests==2.31.0
+google-generativeai==0.3.2
+
+# Web framework for local dashboard
+Flask==3.0.0
+
+# Data processing
+pandas==2.1.4
+numpy==1.24.3
+
+# Environment management
+python-dotenv==1.0.0
+
+# Scheduling for automated runs
+schedule==1.2.0
+
+# Optional: Enhanced features
+beautifulsoup4==4.12.2  # For web scraping
+lxml==4.9.3  # XML processing

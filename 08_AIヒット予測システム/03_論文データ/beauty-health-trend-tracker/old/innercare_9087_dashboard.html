@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>インナーケア・健康食品トレンド分析システム（9,087件分析）</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #333;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .alert-bar {
+            background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .alert-icon {
+            font-size: 1.5rem;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .card-title .emoji {
+            margin-right: 10px;
+            font-size: 1.5rem;
+        }
+
+        .hot-topics-list {
+            list-style: none;
+        }
+
+        .hot-topic-item {
+            background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+
+        .hot-topic-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .topic-name {
+            font-weight: bold;
+            flex: 1;
+        }
+
+        .topic-growth {
+            background: rgba(255,255,255,0.3);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .ingredient-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+        }
+
+        .ingredient-card {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+
+        .ingredient-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .ingredient-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .ingredient-score {
+            font-size: 1.2rem;
+        }
+
+        /* モーダル */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: white;
+            margin: 50px auto;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: slideIn 0.3s;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .modal-title {
+            font-size: 1.8rem;
+            color: #333;
+        }
+
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .tab-button {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            color: #666;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+        }
+
+        .tab-button.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .detail-section {
+            margin-bottom: 25px;
+        }
+
+        .detail-section h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .detail-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .detail-label {
+            font-weight: bold;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .detail-value {
+            color: #333;
+            font-size: 1.1rem;
+        }
+
+        .evidence-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .evidence-item {
+            background: linear-gradient(90deg, #667eea10 0%, #764ba210 100%);
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .evidence-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .evidence-date {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .prediction-detail {
+            background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .timeline-detail {
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .timeline-detail::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 10px;
+            bottom: 10px;
+            width: 2px;
+            background: #667eea;
+        }
+
+        .timeline-event {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .timeline-event::before {
+            content: '';
+            position: absolute;
+            left: -25px;
+            top: 5px;
+            width: 12px;
+            height: 12px;
+            background: #667eea;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        .research-papers {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .paper-item {
+            background: white;
+            border: 1px solid #e0e0e0;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+
+        .paper-item:hover {
+            border-color: #667eea;
+            transform: translateX(5px);
+        }
+
+        .paper-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .paper-info {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 20px;
+        }
+
+        .insights-box {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .insights-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .insights-list {
+            list-style: none;
+        }
+
+        .insights-list li {
+            margin-bottom: 5px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .insights-list li::before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #f5576c;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: white;
+        }
+
+        .spinner {
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔬 インナーケア・健康食品トレンド分析システム</h1>
+            <div class="subtitle">9,087件の論文データベースから最新トレンドを分析</div>
+        </div>
+
+        <div id="alertBar" class="alert-bar" style="display: none;">
+            <span class="alert-icon">🔥</span>
+            <span id="alertMessage"></span>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-value" id="totalPapers">0</div>
+                <div class="stat-label">総論文数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalCategories">0</div>
+                <div class="stat-label">カテゴリー数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="averageGrowth">0%</div>
+                <div class="stat-label">平均成長率</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="topGrowth">0%</div>
+                <div class="stat-label">最高成長率</div>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="card">
+                <h2 class="card-title">
+                    <span class="emoji">🔥</span>
+                    HOTトピックス（カテゴリー別）
+                </h2>
+                <ul class="hot-topics-list" id="hotTopicsList">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>データを読み込み中...</p>
+                    </div>
+                </ul>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">
+                    <span class="emoji">📈</span>
+                    成長トレンド
+                </h2>
+                <div class="chart-container">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">
+                    <span class="emoji">🧪</span>
+                    注目成分
+                </h2>
+                <div class="ingredient-grid" id="ingredientGrid">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>成分データを分析中...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">
+                    <span class="emoji">🎯</span>
+                    AI予測
+                </h2>
+                <div id="predictionsList">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>予測データを生成中...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="insights-box">
+            <div class="insights-title">💡 AIインサイト</div>
+            <ul class="insights-list" id="insightsList">
+                <li>データを分析しています...</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 詳細モーダル -->
+    <div id="detailModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">詳細分析</h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+
+            <div class="tabs">
+                <button class="tab-button active" onclick="switchTab('overview')">概要</button>
+                <button class="tab-button" onclick="switchTab('research')">研究動向</button>
+                <button class="tab-button" onclick="switchTab('prediction')">予測分析</button>
+                <button class="tab-button" onclick="switchTab('market')">市場分析</button>
+            </div>
+
+            <div id="overview" class="tab-content active">
+                <div class="detail-section">
+                    <h3>📊 基本統計</h3>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <div class="detail-label">総論文数</div>
+                            <div class="detail-value" id="detailTotalPapers">-</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">成長率</div>
+                            <div class="detail-value" id="detailGrowth">-</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">平均インパクト</div>
+                            <div class="detail-value" id="detailAvgImpact">-</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">最新論文数</div>
+                            <div class="detail-value" id="detailRecentCount">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h3>🔍 関連サブカテゴリー</h3>
+                    <ul id="subcategoriesList" class="evidence-list"></ul>
+                </div>
+            </div>
+
+            <div id="research" class="tab-content">
+                <div class="detail-section">
+                    <h3>📚 最新研究論文</h3>
+                    <div class="research-papers" id="researchPapersList"></div>
+                </div>
+            </div>
+
+            <div id="prediction" class="tab-content">
+                <div class="detail-section">
+                    <h3>🔮 将来予測</h3>
+                    <div class="prediction-detail">
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <div class="detail-label">現在スコア</div>
+                                <div class="detail-value" id="currentScore">-</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">予測スコア</div>
+                                <div class="detail-value" id="predictedScore">-</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">信頼度</div>
+                                <div class="detail-value" id="confidence">-</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">予測期間</div>
+                                <div class="detail-value" id="timeline">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3>📈 成長要因</h3>
+                    <ul id="growthFactorsList" class="evidence-list"></ul>
+                </div>
+            </div>
+
+            <div id="market" class="tab-content">
+                <div class="detail-section">
+                    <h3>💼 市場分析</h3>
+                    <div class="timeline-detail" id="marketTimeline">
+                        <div class="timeline-event">
+                            <strong>研究初期段階</strong>
+                            <p>基礎研究の蓄積</p>
+                        </div>
+                        <div class="timeline-event">
+                            <strong>市場認知拡大</strong>
+                            <p>消費者への浸透開始</p>
+                        </div>
+                        <div class="timeline-event">
+                            <strong>商品化加速</strong>
+                            <p>製品開発の活発化</p>
+                        </div>
+                        <div class="timeline-event">
+                            <strong>市場成熟</strong>
+                            <p>大規模展開へ</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="dashboard_data.js"></script>
+    <script>
+        // グローバル変数
+        let trendChart = null;
+        let currentDetailItem = null;
+
+        // データの読み込みと初期化
+        function loadDashboardData() {
+            // dashboardDataは外部JSファイルから既に読み込まれている
+            if (typeof dashboardData !== 'undefined') {
+                initializeDashboard();
+            } else {
+                console.error('データが見つかりません');
+            }
+        }
+
+        // ダッシュボードの初期化
+        function initializeDashboard() {
+            // 統計情報の表示
+            updateStats();
+
+            // HOTトピックスの表示
+            displayHotTopics();
+
+            // 成分の表示
+            displayIngredients();
+
+            // 予測の表示
+            displayPredictions();
+
+            // トレンドチャートの表示
+            displayTrendChart();
+
+            // インサイトの表示
+            displayInsights();
+
+            // アラートバーの表示
+            checkAndDisplayAlert();
+        }
+
+        // 統計情報の更新
+        function updateStats() {
+            document.getElementById('totalPapers').textContent = dashboardData.metadata.total_papers.toLocaleString();
+            document.getElementById('totalCategories').textContent = dashboardData.metadata.categories;
+            document.getElementById('averageGrowth').textContent = Math.round(dashboardData.summary.total_growth) + '%';
+
+            const maxGrowth = Math.max(...dashboardData.hot_topics.map(t => t.growth));
+            document.getElementById('topGrowth').textContent = maxGrowth + '%';
+        }
+
+        // HOTトピックスの表示
+        function displayHotTopics() {
+            const listElement = document.getElementById('hotTopicsList');
+            listElement.innerHTML = '';
+
+            dashboardData.hot_topics.forEach(topic => {
+                const li = document.createElement('li');
+                li.className = 'hot-topic-item';
+                li.innerHTML = `
+                    <span class="topic-name">${topic.name}</span>
+                    <span class="topic-growth">+${topic.growth}%</span>
+                `;
+                li.onclick = () => showTopicDetail(topic);
+                listElement.appendChild(li);
+            });
+        }
+
+        // 成分の表示
+        function displayIngredients() {
+            const gridElement = document.getElementById('ingredientGrid');
+            gridElement.innerHTML = '';
+
+            dashboardData.ingredients.slice(0, 12).forEach(ingredient => {
+                const card = document.createElement('div');
+                card.className = 'ingredient-card';
+                card.innerHTML = `
+                    <div class="ingredient-name">${ingredient.name}</div>
+                    <div class="ingredient-score">${Math.round(ingredient.score)}</div>
+                `;
+                card.onclick = () => showIngredientDetail(ingredient);
+                gridElement.appendChild(card);
+            });
+        }
+
+        // 予測の表示
+        function displayPredictions() {
+            const listElement = document.getElementById('predictionsList');
+            listElement.innerHTML = '';
+
+            dashboardData.predictions.slice(0, 5).forEach(prediction => {
+                const div = document.createElement('div');
+                div.className = 'prediction-detail';
+                div.innerHTML = `
+                    <strong>${prediction.name}</strong>
+                    <p>予測スコア: ${Math.round(prediction.predicted_score)} (${prediction.timeline})</p>
+                `;
+                div.onclick = () => showPredictionDetail(prediction);
+                listElement.appendChild(div);
+            });
+        }
+
+        // トレンドチャートの表示
+        function displayTrendChart() {
+            const ctx = document.getElementById('trendChart').getContext('2d');
+
+            const years = Object.keys(dashboardData.trends.yearly).sort();
+            const counts = years.map(year => dashboardData.trends.yearly[year]);
+
+            trendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: years,
+                    datasets: [{
+                        label: '論文数',
+                        data: counts,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // インサイトの表示
+        function displayInsights() {
+            const insights = [
+                `最も成長しているカテゴリーは「${dashboardData.summary.top_growing_category}」です`,
+                `注目成分「${dashboardData.summary.top_ingredient}」が高いスコアを記録しています`,
+                `全体の平均成長率は${Math.round(dashboardData.summary.total_growth)}%です`,
+                `${dashboardData.metadata.total_papers.toLocaleString()}件の論文から最新トレンドを分析しました`
+            ];
+
+            const listElement = document.getElementById('insightsList');
+            listElement.innerHTML = insights.map(insight => `<li>${insight}</li>`).join('');
+        }
+
+        // アラートバーの表示
+        function checkAndDisplayAlert() {
+            if (dashboardData.summary.alert_level === 'high') {
+                const alertBar = document.getElementById('alertBar');
+                const alertMessage = document.getElementById('alertMessage');
+
+                alertMessage.textContent = `急成長トレンド検出: ${dashboardData.hot_topics[0].name}が${dashboardData.hot_topics[0].growth}%の成長を記録！`;
+                alertBar.style.display = 'flex';
+            }
+        }
+
+        // トピック詳細の表示
+        function showTopicDetail(topic) {
+            currentDetailItem = topic;
+            const modal = document.getElementById('detailModal');
+            modal.style.display = 'block';
+
+            document.getElementById('modalTitle').textContent = topic.name;
+
+            const detail = dashboardData.details[topic.name];
+            if (detail) {
+                // 概要タブの更新
+                document.getElementById('detailTotalPapers').textContent = detail.total_papers.toLocaleString();
+                document.getElementById('detailGrowth').textContent = `+${topic.growth}%`;
+                document.getElementById('detailAvgImpact').textContent = detail.avg_impact.toFixed(1);
+                document.getElementById('detailRecentCount').textContent = topic.recent_count;
+
+                // サブカテゴリーの表示
+                const subcategoriesList = document.getElementById('subcategoriesList');
+                subcategoriesList.innerHTML = '';
+                detail.subcategories.forEach(([name, count]) => {
+                    const li = document.createElement('li');
+                    li.className = 'evidence-item';
+                    li.innerHTML = `
+                        <div class="evidence-title">${name}</div>
+                        <div class="evidence-date">論文数: ${count}</div>
+                    `;
+                    subcategoriesList.appendChild(li);
+                });
+
+                // 研究論文の表示
+                const papersList = document.getElementById('researchPapersList');
+                papersList.innerHTML = '';
+                detail.recent_papers.forEach(paper => {
+                    const div = document.createElement('div');
+                    div.className = 'paper-item';
+                    div.innerHTML = `
+                        <div class="paper-title">${paper.title}</div>
+                        <div class="paper-info">
+                            ${paper.year}年 | 引用数: ${paper.citations} | インパクト: ${paper.impact.toFixed(1)}
+                        </div>
+                    `;
+                    papersList.appendChild(div);
+                });
+
+                // 成長要因の表示
+                const growthFactorsList = document.getElementById('growthFactorsList');
+                growthFactorsList.innerHTML = '';
+                detail.growth_factors.forEach(factor => {
+                    const li = document.createElement('li');
+                    li.className = 'evidence-item';
+                    li.innerHTML = `<div class="evidence-title">${factor}</div>`;
+                    growthFactorsList.appendChild(li);
+                });
+            }
+
+            // 予測データの更新
+            const prediction = dashboardData.predictions.find(p => p.name === topic.name);
+            if (prediction) {
+                document.getElementById('currentScore').textContent = Math.round(prediction.current_score);
+                document.getElementById('predictedScore').textContent = Math.round(prediction.predicted_score);
+                document.getElementById('confidence').textContent = `${Math.round(prediction.confidence * 100)}%`;
+                document.getElementById('timeline').textContent = prediction.timeline;
+            }
+        }
+
+        // 成分詳細の表示
+        function showIngredientDetail(ingredient) {
+            currentDetailItem = ingredient;
+            const modal = document.getElementById('detailModal');
+            modal.style.display = 'block';
+
+            document.getElementById('modalTitle').textContent = ingredient.name;
+
+            const detail = dashboardData.details[ingredient.name];
+            if (detail) {
+                // 概要タブの更新
+                document.getElementById('detailTotalPapers').textContent = ingredient.papers;
+                document.getElementById('detailGrowth').textContent = `+${ingredient.growth}%`;
+                document.getElementById('detailAvgImpact').textContent = 'N/A';
+                document.getElementById('detailRecentCount').textContent = Math.round(ingredient.papers * 0.3);
+
+                // 応用分野の表示
+                const subcategoriesList = document.getElementById('subcategoriesList');
+                subcategoriesList.innerHTML = '';
+                detail.applications.forEach(app => {
+                    const li = document.createElement('li');
+                    li.className = 'evidence-item';
+                    li.innerHTML = `<div class="evidence-title">${app}</div>`;
+                    subcategoriesList.appendChild(li);
+                });
+            }
+        }
+
+        // 予測詳細の表示
+        function showPredictionDetail(prediction) {
+            showTopicDetail({ name: prediction.name, growth: 0 });
+        }
+
+        // タブ切り替え
+        function switchTab(tabName) {
+            const tabs = document.querySelectorAll('.tab-button');
+            const contents = document.querySelectorAll('.tab-content');
+
+            tabs.forEach(tab => tab.classList.remove('active'));
+            contents.forEach(content => content.classList.remove('active'));
+
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        // モーダルを閉じる
+        function closeModal() {
+            document.getElementById('detailModal').style.display = 'none';
+        }
+
+        // モーダルの外側クリックで閉じる
+        window.onclick = function(event) {
+            const modal = document.getElementById('detailModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // ページロード時にデータを読み込み
+        window.addEventListener('load', loadDashboardData);
+    </script>
+</body>
+</html>

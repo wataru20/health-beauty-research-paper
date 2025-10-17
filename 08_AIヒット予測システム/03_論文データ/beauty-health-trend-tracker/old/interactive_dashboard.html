@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>美容・健康論文データベース インタラクティブダッシュボード</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Helvetica Neue', Arial, 'ヒラギノ角ゴ ProN', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 30px;
+            background: #f8f9fa;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 1em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .charts-container {
+            padding: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+            gap: 30px;
+        }
+
+        .chart-wrapper {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .chart-title {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .insights-section {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 30px;
+            margin: 30px;
+            border-radius: 15px;
+        }
+
+        .insights-section h2 {
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+
+        .insight-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            border-left: 4px solid white;
+        }
+
+        .filters {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .filter-group label {
+            font-size: 0.9em;
+            color: #666;
+            font-weight: bold;
+        }
+
+        .filter-group select {
+            padding: 8px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+            font-size: 1em;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .stat-value {
+                font-size: 2em;
+            }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 1.2em;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 美容・健康論文データベース</h1>
+            <p>インタラクティブ分析ダッシュボード (2024年9月版)</p>
+        </div>
+
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="stat-value">9,087</div>
+                <div class="stat-label">総論文数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">9</div>
+                <div class="stat-label">メインカテゴリ</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">25</div>
+                <div class="stat-label">サブカテゴリ</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">2020-2026</div>
+                <div class="stat-label">収録年範囲</div>
+            </div>
+        </div>
+
+        <div class="filters">
+            <div class="filter-group">
+                <label>カテゴリ選択</label>
+                <select id="categoryFilter" onchange="updateCharts()">
+                    <option value="all">すべて</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>年度選択</label>
+                <select id="yearFilter" onchange="updateCharts()">
+                    <option value="all">すべて</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="charts-container">
+            <div class="chart-wrapper">
+                <h3 class="chart-title">カテゴリ別論文分布</h3>
+                <div id="categoryPieChart"></div>
+            </div>
+
+            <div class="chart-wrapper">
+                <h3 class="chart-title">年別論文数推移</h3>
+                <div id="yearlyTrendChart"></div>
+            </div>
+
+            <div class="chart-wrapper">
+                <h3 class="chart-title">TOP 15 サブカテゴリ</h3>
+                <div id="subcategoryBarChart"></div>
+            </div>
+
+            <div class="chart-wrapper">
+                <h3 class="chart-title">カテゴリ別研究多様性</h3>
+                <div id="diversityChart"></div>
+            </div>
+        </div>
+
+        <div class="insights-section">
+            <h2>💡 主要インサイト</h2>
+            <div class="insight-item">
+                📈 最も研究が活発な分野は「trending_ingredients（トレンド成分）」で、全体の26.4%を占める
+            </div>
+            <div class="insight-item">
+                🔬 「skin_care（スキンケア）」が最多の論文数（624件）を記録
+            </div>
+            <div class="insight-item">
+                📅 2023年が論文数のピーク（1,115件）となり、研究活動が最も活発
+            </div>
+            <div class="insight-item">
+                🌟 100件以上の論文が集中している研究領域が25個存在し、研究の集中化が進行
+            </div>
+            <div class="insight-item">
+                🎯 「trending_ingredients」カテゴリが最も多様な研究領域（6つのサブカテゴリ）を持つ
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // データ定義
+        const categoryData = {
+            'trending_ingredients': 2396,
+            'beauty_aging': 1401,
+            'health_wellness': 1243,
+            'concepts_diets': 1010,
+            'mental_physical_performance': 990,
+            'emerging_ingredients': 596,
+            'lifecycle_gender': 556,
+            'diet_body_contouring': 497,
+            'technology_formulation': 398
+        };
+
+        const yearData = {
+            2020: 132,
+            2021: 684,
+            2022: 875,
+            2023: 1115,
+            2024: 900,
+            2025: 270,
+            2026: 1
+        };
+
+        const subcategoryData = {
+            'skin_care': 624,
+            'next_generation': 596,
+            'diet_methods': 498,
+            'vitamins_minerals': 450,
+            'anti_aging': 450,
+            'health_markers': 449,
+            'plant_derived': 448,
+            'internal_environment': 447,
+            'beauty_ingredients': 400,
+            'functional_ingredients': 398,
+            'delivery_systems': 398,
+            'mental_health': 397,
+            'proteins': 350,
+            'probiotics_fermented': 350,
+            'basic_functions': 347
+        };
+
+        const diversityData = {
+            'trending_ingredients': 6,
+            'mental_physical_performance': 4,
+            'concepts_diets': 4,
+            'beauty_aging': 3,
+            'health_wellness': 3,
+            'diet_body_contouring': 2,
+            'lifecycle_gender': 2,
+            'emerging_ingredients': 1,
+            'technology_formulation': 1
+        };
+
+        // フィルター初期化
+        function initializeFilters() {
+            const categoryFilter = document.getElementById('categoryFilter');
+            Object.keys(categoryData).forEach(category => {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category.replace(/_/g, ' ').toUpperCase();
+                categoryFilter.appendChild(option);
+            });
+
+            const yearFilter = document.getElementById('yearFilter');
+            Object.keys(yearData).forEach(year => {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year + '年';
+                yearFilter.appendChild(option);
+            });
+        }
+
+        // チャート作成
+        function createCharts() {
+            // カテゴリ別円グラフ
+            const pieData = [{
+                values: Object.values(categoryData),
+                labels: Object.keys(categoryData).map(k => k.replace(/_/g, ' ')),
+                type: 'pie',
+                hole: 0.4,
+                marker: {
+                    colors: ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe',
+                            '#00f2fe', '#fa709a', '#fee140', '#30cfd0']
+                },
+                textinfo: 'label+percent',
+                textposition: 'outside'
+            }];
+
+            const pieLayout = {
+                height: 400,
+                showlegend: false,
+                margin: {t: 20, b: 20}
+            };
+
+            Plotly.newPlot('categoryPieChart', pieData, pieLayout, {responsive: true});
+
+            // 年別推移
+            const trendData = [{
+                x: Object.keys(yearData),
+                y: Object.values(yearData),
+                type: 'scatter',
+                mode: 'lines+markers',
+                marker: {
+                    size: 10,
+                    color: '#667eea'
+                },
+                line: {
+                    color: '#667eea',
+                    width: 3
+                },
+                fill: 'tozeroy',
+                fillcolor: 'rgba(102, 126, 234, 0.2)'
+            }];
+
+            const trendLayout = {
+                height: 400,
+                xaxis: {title: '年'},
+                yaxis: {title: '論文数'},
+                margin: {t: 20}
+            };
+
+            Plotly.newPlot('yearlyTrendChart', trendData, trendLayout, {responsive: true});
+
+            // サブカテゴリ棒グラフ
+            const barData = [{
+                x: Object.values(subcategoryData),
+                y: Object.keys(subcategoryData).map(k => k.replace(/_/g, ' ')),
+                type: 'bar',
+                orientation: 'h',
+                marker: {
+                    color: Object.values(subcategoryData).map((v, i) =>
+                        `rgba(102, 126, 234, ${0.3 + (i / 15) * 0.7})`
+                    )
+                }
+            }];
+
+            const barLayout = {
+                height: 500,
+                xaxis: {title: '論文数'},
+                margin: {l: 150, t: 20}
+            };
+
+            Plotly.newPlot('subcategoryBarChart', barData, barLayout, {responsive: true});
+
+            // 多様性チャート
+            const diversityTrace = [{
+                x: Object.keys(diversityData).map(k => k.replace(/_/g, ' ')),
+                y: Object.values(diversityData),
+                type: 'bar',
+                marker: {
+                    color: 'rgba(245, 87, 108, 0.7)',
+                    line: {
+                        color: 'rgba(245, 87, 108, 1)',
+                        width: 2
+                    }
+                }
+            }];
+
+            const diversityLayout = {
+                height: 400,
+                xaxis: {
+                    title: 'カテゴリ',
+                    tickangle: -45
+                },
+                yaxis: {title: 'サブカテゴリ数'},
+                margin: {b: 150, t: 20}
+            };
+
+            Plotly.newPlot('diversityChart', diversityTrace, diversityLayout, {responsive: true});
+        }
+
+        // チャート更新
+        function updateCharts() {
+            const selectedCategory = document.getElementById('categoryFilter').value;
+            const selectedYear = document.getElementById('yearFilter').value;
+
+            // フィルタリング処理の実装
+            console.log('Filter updated:', selectedCategory, selectedYear);
+            // 実際のフィルタリング処理はデータ構造に応じて実装
+        }
+
+        // 初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeFilters();
+            createCharts();
+        });
+    </script>
+</body>
+</html>

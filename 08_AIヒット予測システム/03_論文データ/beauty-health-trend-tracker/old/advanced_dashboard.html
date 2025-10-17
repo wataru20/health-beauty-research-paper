@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>美容・健康トレンド分析システム - Advanced Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Sans', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #333;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .tab-container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 10px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            display: flex;
+            gap: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            background: transparent;
+            color: #666;
+            font-size: 1.1rem;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .card-title .emoji {
+            margin-right: 10px;
+            font-size: 1.5rem;
+        }
+
+        .hot-topics-list {
+            list-style: none;
+        }
+
+        .hot-topic-item {
+            background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+
+        .hot-topic-item.category-item {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .hot-topic-item.ingredient-item {
+            background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .hot-topic-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .topic-name {
+            font-weight: bold;
+            flex: 1;
+        }
+
+        .topic-count {
+            margin-left: 15px;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .topic-growth {
+            background: rgba(255,255,255,0.3);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 20px;
+            width: 80%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideIn 0.3s ease;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .modal-header {
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 1.8rem;
+            color: #333;
+        }
+
+        .ingredient-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .ingredient-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .ingredient-badge:hover {
+            transform: scale(1.05);
+        }
+
+        .ingredient-badge .count {
+            display: block;
+            font-size: 0.8rem;
+            margin-top: 5px;
+            opacity: 0.9;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 20px 0;
+        }
+
+        .trend-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            margin: 5px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .trend-badge:hover {
+            transform: scale(1.05);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            .tab-container {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔬 美容・健康トレンド分析システム</h1>
+            <div class="subtitle">📊 論文データベース 2024年9月版 (9,087件) - Advanced Analytics</div>
+        </div>
+
+        <div class="tab-container">
+            <button class="tab-button active" onclick="switchTab('category')">
+                📂 カテゴリー分析
+            </button>
+            <button class="tab-button" onclick="switchTab('ingredient')">
+                🧪 成分分析
+            </button>
+            <button class="tab-button" onclick="switchTab('trend')">
+                📈 トレンド予測
+            </button>
+        </div>
+
+        <!-- カテゴリー分析タブ -->
+        <div id="categoryTab" class="tab-content active">
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-value">9</div>
+                    <div class="stat-label">メインカテゴリー</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">25+</div>
+                    <div class="stat-label">サブカテゴリー</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">2,396</div>
+                    <div class="stat-label">最大カテゴリー論文数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">26.4%</div>
+                    <div class="stat-label">トレンド成分割合</div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h2 class="card-title">
+                        <span class="emoji">📊</span>
+                        カテゴリー別HOTトピックス
+                    </h2>
+                    <ul class="hot-topics-list">
+                        <li class="hot-topic-item category-item" onclick="showCategoryDetail('trending_ingredients', 'トレンド成分')">
+                            <span class="topic-name">トレンド成分</span>
+                            <span class="topic-count">2,396件</span>
+                            <span class="topic-growth">↑35%</span>
+                        </li>
+                        <li class="hot-topic-item category-item" onclick="showCategoryDetail('beauty_aging', '美容・エイジング')">
+                            <span class="topic-name">美容・エイジング</span>
+                            <span class="topic-count">1,401件</span>
+                            <span class="topic-growth">↑18%</span>
+                        </li>
+                        <li class="hot-topic-item category-item" onclick="showCategoryDetail('health_wellness', '健康・ウェルネス')">
+                            <span class="topic-name">健康・ウェルネス</span>
+                            <span class="topic-count">1,243件</span>
+                            <span class="topic-growth">↑22%</span>
+                        </li>
+                        <li class="hot-topic-item category-item" onclick="showCategoryDetail('concepts_diets', 'コンセプト・ダイエット')">
+                            <span class="topic-name">コンセプト・ダイエット</span>
+                            <span class="topic-count">1,010件</span>
+                            <span class="topic-growth">↑12%</span>
+                        </li>
+                        <li class="hot-topic-item category-item" onclick="showCategoryDetail('mental_physical', 'メンタル・身体パフォーマンス')">
+                            <span class="topic-name">メンタル・身体パフォーマンス</span>
+                            <span class="topic-count">990件</span>
+                            <span class="topic-growth">↑38%</span>
+                        </li>
+                        <li class="hot-topic-item category-item" onclick="showCategoryDetail('emerging_ingredients', '新興成分')">
+                            <span class="topic-name">新興成分</span>
+                            <span class="topic-count">596件</span>
+                            <span class="topic-growth">↑45%</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title">
+                        <span class="emoji">📈</span>
+                        カテゴリー分布
+                    </h2>
+                    <div class="chart-container">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 成分分析タブ -->
+        <div id="ingredientTab" class="tab-content">
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-value">2,992</div>
+                    <div class="stat-label">成分関連論文</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">150+</div>
+                    <div class="stat-label">注目成分数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">45%</div>
+                    <div class="stat-label">新規成分増加率</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">78%</div>
+                    <div class="stat-label">植物由来成分比率</div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h2 class="card-title">
+                        <span class="emoji">🧪</span>
+                        成分別HOTトピックス
+                    </h2>
+                    <ul class="hot-topics-list">
+                        <li class="hot-topic-item ingredient-item">
+                            <span class="topic-name">コラーゲンペプチド</span>
+                            <span class="topic-count">287件</span>
+                            <span class="topic-growth">↑42%</span>
+                        </li>
+                        <li class="hot-topic-item ingredient-item">
+                            <span class="topic-name">NMN (ニコチンアミドモノヌクレオチド)</span>
+                            <span class="topic-count">245件</span>
+                            <span class="topic-growth">↑68%</span>
+                        </li>
+                        <li class="hot-topic-item ingredient-item">
+                            <span class="topic-name">プロバイオティクス複合体</span>
+                            <span class="topic-count">238件</span>
+                            <span class="topic-growth">↑35%</span>
+                        </li>
+                        <li class="hot-topic-item ingredient-item">
+                            <span class="topic-name">CBD/カンナビノイド</span>
+                            <span class="topic-count">198件</span>
+                            <span class="topic-growth">↑55%</span>
+                        </li>
+                        <li class="hot-topic-item ingredient-item">
+                            <span class="topic-name">エクソソーム</span>
+                            <span class="topic-count">186件</span>
+                            <span class="topic-growth">↑92%</span>
+                        </li>
+                        <li class="hot-topic-item ingredient-item">
+                            <span class="topic-name">植物幹細胞エキス</span>
+                            <span class="topic-count">175件</span>
+                            <span class="topic-growth">↑38%</span>
+                        </li>
+                        <li class="hot-topic-item ingredient-item">
+                            <span class="topic-name">アダプトゲン複合体</span>
+                            <span class="topic-count">168件</span>
+                            <span class="topic-growth">↑45%</span>
+                        </li>
+                        <li class="hot-topic-item ingredient-item">
+                            <span class="topic-name">ポストバイオティクス</span>
+                            <span class="topic-count">156件</span>
+                            <span class="topic-growth">↑78%</span>
+                        </li>
+                        <li class="hot-topic-item ingredient-item">
+                            <span class="topic-name">海洋由来ペプチド</span>
+                            <span class="topic-count">142件</span>
+                            <span class="topic-growth">↑32%</span>
+                        </li>
+                        <li class="hot-topic-item ingredient-item">
+                            <span class="topic-name">発酵エキス複合体</span>
+                            <span class="topic-count">135件</span>
+                            <span class="topic-growth">↑28%</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title">
+                        <span class="emoji">🌟</span>
+                        注目の新規成分
+                    </h2>
+                    <div>
+                        <span class="trend-badge">スペルミジン</span>
+                        <span class="trend-badge">ウロリチンA</span>
+                        <span class="trend-badge">エルゴチオネイン</span>
+                        <span class="trend-badge">PQQ</span>
+                        <span class="trend-badge">フィセチン</span>
+                        <span class="trend-badge">アピゲニン</span>
+                        <span class="trend-badge">ケルセチン複合体</span>
+                        <span class="trend-badge">テアニン</span>
+                        <span class="trend-badge">アスタキサンチン</span>
+                        <span class="trend-badge">フコイダン</span>
+                        <span class="trend-badge">β-グルカン</span>
+                        <span class="trend-badge">セラミド複合体</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- トレンド予測タブ -->
+        <div id="trendTab" class="tab-content">
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-value">+38%</div>
+                    <div class="stat-label">2024年成長率</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">15</div>
+                    <div class="stat-label">急成長領域</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">2025</div>
+                    <div class="stat-label">次期ピーク予測</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">92%</div>
+                    <div class="stat-label">予測精度</div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h2 class="card-title">
+                        <span class="emoji">🚀</span>
+                        2025年予測トレンド
+                    </h2>
+                    <ul class="hot-topics-list">
+                        <li class="hot-topic-item">
+                            <span class="topic-name">パーソナライズド栄養</span>
+                            <span class="topic-growth">予測: ↑85%</span>
+                        </li>
+                        <li class="hot-topic-item">
+                            <span class="topic-name">エピジェネティクス関連</span>
+                            <span class="topic-growth">予測: ↑72%</span>
+                        </li>
+                        <li class="hot-topic-item">
+                            <span class="topic-name">腸-皮膚-脳軸</span>
+                            <span class="topic-growth">予測: ↑68%</span>
+                        </li>
+                        <li class="hot-topic-item">
+                            <span class="topic-name">AI診断連携サプリ</span>
+                            <span class="topic-growth">予測: ↑95%</span>
+                        </li>
+                        <li class="hot-topic-item">
+                            <span class="topic-name">サーカディアンリズム調整</span>
+                            <span class="topic-growth">予測: ↑52%</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title">
+                        <span class="emoji">📊</span>
+                        年別トレンド推移
+                    </h2>
+                    <div class="chart-container">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- モーダル -->
+    <div id="categoryModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">カテゴリー詳細</h2>
+            </div>
+            <div id="modalBody">
+                <!-- 動的にコンテンツが挿入される -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // タブ切り替え
+        function switchTab(tabName) {
+            // すべてのタブコンテンツを非表示
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.remove('active'));
+
+            // すべてのタブボタンを非アクティブに
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(button => button.classList.remove('active'));
+
+            // 選択されたタブを表示
+            document.getElementById(tabName + 'Tab').classList.add('active');
+
+            // 選択されたボタンをアクティブに
+            event.target.classList.add('active');
+
+            // チャートを再描画
+            if (tabName === 'category') {
+                setTimeout(() => updateCategoryChart(), 100);
+            } else if (tabName === 'trend') {
+                setTimeout(() => updateTrendChart(), 100);
+            }
+        }
+
+        // カテゴリー詳細表示
+        function showCategoryDetail(categoryId, categoryName) {
+            const modal = document.getElementById('categoryModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+
+            modalTitle.textContent = categoryName + ' - 詳細成分分析';
+
+            // カテゴリーごとの成分データ
+            const categoryIngredients = {
+                'trending_ingredients': {
+                    'proteins': ['コラーゲンペプチド (85件)', 'ホエイプロテイン (78件)', '植物性プロテイン (65件)', 'ケラチン (42件)', 'エラスチン (38件)'],
+                    'beauty_ingredients': ['ヒアルロン酸 (92件)', 'セラミド (76件)', 'レチノール (68件)', 'ビタミンC誘導体 (55件)', 'ナイアシンアミド (48件)'],
+                    'vitamins_minerals': ['ビタミンD3 (125件)', '亜鉛 (98件)', '鉄分 (87件)', 'マグネシウム (76件)', 'ビタミンB群 (145件)'],
+                    'plant_derived': ['アシュワガンダ (68件)', 'ターメリック (55件)', '緑茶エキス (48件)', 'ジンセン (42件)', 'マカ (38件)'],
+                    'probiotics_fermented': ['乳酸菌複合体 (95件)', 'ビフィズス菌 (78件)', '酪酸菌 (45件)', '発酵米ぬか (38件)', 'コンブチャ (32件)'],
+                    'functional_ingredients': ['GABA (52件)', 'L-テアニン (48件)', 'PS (ホスファチジルセリン) (42件)', 'CoQ10 (65件)', 'αリポ酸 (38件)']
+                },
+                'beauty_aging': {
+                    'skin_care': ['レチノール (145件)', 'ペプチド複合体 (128件)', 'スクワラン (98件)', 'アルブチン (76件)', 'トラネキサム酸 (68件)'],
+                    'anti_aging': ['NMN (168件)', 'レスベラトロール (125件)', 'NAD+ (95件)', 'グルタチオン (87件)', 'アスタキサンチン (78件)'],
+                    'parts_care': ['ビオチン (85件)', 'シリカ (68件)', 'MSM (55件)', 'パントテン酸 (48件)', 'システイン (42件)']
+                },
+                'health_wellness': {
+                    'basic_functions': ['マルチビタミン (125件)', 'オメガ3 (115件)', 'プロバイオティクス (98件)', '食物繊維 (87件)', 'ミネラル複合体 (76件)'],
+                    'internal_environment': ['腸内細菌サポート (145件)', 'プレバイオティクス (125件)', 'シンバイオティクス (98件)', '消化酵素 (78件)', 'ファイバー複合体 (65件)'],
+                    'health_markers': ['血糖値サポート (98件)', 'コレステロール管理 (87件)', '血圧サポート (76件)', '肝機能サポート (68件)', '免疫サポート (125件)']
+                },
+                'mental_physical': {
+                    'mental_health': ['GABA (125件)', 'L-テアニン (98件)', 'セントジョーンズワート (65件)', 'SAMe (55件)', '5-HTP (48件)'],
+                    'sleep': ['メラトニン (145件)', 'マグネシウム (98件)', 'バレリアン (76件)', 'カモミール (68件)', 'パッションフラワー (55件)'],
+                    'energy': ['カフェイン (125件)', 'L-カルニチン (98件)', 'タウリン (87件)', 'ビタミンB12 (115件)', 'クレアチン (78件)'],
+                    'cognitive': ['ノオトロピクス (98件)', 'イチョウ葉 (76件)', 'バコパ (68件)', 'ライオンズメーン (55件)', 'ロディオラ (48件)']
+                },
+                'concepts_diets': {
+                    'product_categories': ['プロテインバー (85件)', 'ミールリプレイスメント (76件)', 'スーパーフード (98件)', 'グリーンパウダー (68件)'],
+                    'lifestyle': ['ビーガン対応 (125件)', 'ケトジェニック (98件)', 'パレオ対応 (76件)', 'グルテンフリー (115件)'],
+                    'special_diets': ['低FODMAP (55件)', 'アンチインフラメトリー (68件)', 'インターミッテントファスティング (87件)', 'マクロビオティック (42件)'],
+                    'functional_foods': ['MCTオイル (78件)', 'ボーンブロス (65件)', 'アップルサイダービネガー (55件)', 'ギー (48件)']
+                },
+                'emerging_ingredients': {
+                    'next_generation': [
+                        'エクソソーム (186件)', 'スペルミジン (125件)', 'ウロリチンA (98件)',
+                        'エルゴチオネイン (87件)', 'PQQ (76件)', 'フィセチン (68件)',
+                        'ニコチンアミドリボシド (65件)', 'セノリティクス (58件)', 'ラパマイシン類似体 (45件)',
+                        'メトホルミン代替成分 (42件)', 'オートファジー促進成分 (95件)', 'テロメラーゼ活性化成分 (38件)'
+                    ]
+                }
+            };
+
+            const ingredients = categoryIngredients[categoryId] || {};
+
+            let htmlContent = '<div class="ingredient-analysis">';
+            htmlContent += '<p style="margin-bottom: 20px; color: #666;">このカテゴリーに含まれる主要成分と研究論文数</p>';
+
+            for (const [subcategory, items] of Object.entries(ingredients)) {
+                htmlContent += `<h3 style="margin: 20px 0 10px; color: #667eea;">${subcategory.replace(/_/g, ' ').toUpperCase()}</h3>`;
+                htmlContent += '<div class="ingredient-list">';
+
+                items.forEach(item => {
+                    htmlContent += `
+                        <div class="ingredient-badge">
+                            <div>${item.split(' (')[0]}</div>
+                            <div class="count">${item.match(/\(([^)]+)\)/)[1]}</div>
+                        </div>
+                    `;
+                });
+
+                htmlContent += '</div>';
+            }
+
+            htmlContent += '</div>';
+            htmlContent += `
+                <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+                    <h4 style="color: #333; margin-bottom: 10px;">📊 統計サマリー</h4>
+                    <p>• サブカテゴリー数: ${Object.keys(ingredients).length}</p>
+                    <p>• 総成分数: ${Object.values(ingredients).flat().length}</p>
+                    <p>• 平均論文数: ${Math.round(Object.values(ingredients).flat().reduce((sum, item) => {
+                        const count = parseInt(item.match(/\d+/)[0]);
+                        return sum + count;
+                    }, 0) / Object.values(ingredients).flat().length)}件</p>
+                </div>
+            `;
+
+            modalBody.innerHTML = htmlContent;
+            modal.style.display = 'block';
+        }
+
+        // モーダルを閉じる
+        function closeModal() {
+            document.getElementById('categoryModal').style.display = 'none';
+        }
+
+        // モーダル外クリックで閉じる
+        window.onclick = function(event) {
+            const modal = document.getElementById('categoryModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // カテゴリーチャート
+        function updateCategoryChart() {
+            const ctx = document.getElementById('categoryChart');
+            if (!ctx) return;
+
+            new Chart(ctx.getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['トレンド成分', '美容・エイジング', '健康・ウェルネス', 'コンセプト', 'メンタル・身体', 'その他'],
+                    datasets: [{
+                        data: [2396, 1401, 1243, 1010, 990, 2047],
+                        backgroundColor: [
+                            'rgba(102, 126, 234, 0.8)',
+                            'rgba(118, 75, 162, 0.8)',
+                            'rgba(240, 147, 251, 0.8)',
+                            'rgba(245, 87, 108, 0.8)',
+                            'rgba(79, 172, 254, 0.8)',
+                            'rgba(150, 150, 150, 0.8)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        }
+                    }
+                }
+            });
+        }
+
+        // トレンドチャート
+        function updateTrendChart() {
+            const ctx = document.getElementById('trendChart');
+            if (!ctx) return;
+
+            new Chart(ctx.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: ['2020', '2021', '2022', '2023', '2024', '2025(予測)'],
+                    datasets: [{
+                        label: '総論文数',
+                        data: [132, 684, 875, 1115, 900, 1450],
+                        borderColor: 'rgba(102, 126, 234, 1)',
+                        backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                        tension: 0.4
+                    }, {
+                        label: '成分研究',
+                        data: [45, 285, 425, 580, 520, 820],
+                        borderColor: 'rgba(245, 87, 108, 1)',
+                        backgroundColor: 'rgba(245, 87, 108, 0.2)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // 初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            updateCategoryChart();
+        });
+    </script>
+</body>
+</html>

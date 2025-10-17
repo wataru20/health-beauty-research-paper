@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>インナーケア・健康食品トレンド分析ダッシュボード</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #333;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .card-title .emoji {
+            margin-right: 10px;
+            font-size: 1.5rem;
+        }
+
+        .hot-topics-list {
+            list-style: none;
+        }
+
+        .hot-topic-item {
+            background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.2s;
+        }
+
+        .hot-topic-item:hover {
+            transform: translateX(5px);
+        }
+
+        .topic-name {
+            font-weight: bold;
+            flex: 1;
+        }
+
+        .topic-growth {
+            background: rgba(255,255,255,0.3);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .ingredient-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+        }
+
+        .ingredient-card {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+
+        .ingredient-card:hover {
+            transform: scale(1.05);
+        }
+
+        .ingredient-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .ingredient-score {
+            font-size: 1.2rem;
+        }
+
+        .prediction-timeline {
+            position: relative;
+            padding: 20px 0;
+        }
+
+        .timeline-item {
+            background: linear-gradient(90deg, #fa709a 0%, #fee140 100%);
+            color: white;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            position: relative;
+            padding-left: 50px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .timeline-period {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .timeline-ingredient {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+
+        canvas {
+            max-height: 300px;
+        }
+
+        .period-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .period-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 20px;
+            background: #e0e0e0;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .period-btn.active {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .alert {
+            background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .alert-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌿 インナーケア・健康食品トレンド分析</h1>
+            <div class="subtitle">4,251件の論文データから導き出された最新トレンド</div>
+        </div>
+
+        <div class="alert">
+            <div class="alert-title">📢 今月の注目トレンド</div>
+            <div>アスタキサンチンとNAD+関連の研究が急増中！グルタチオンの美白効果にも注目が集まっています。</div>
+        </div>
+
+        <div class="dashboard-grid">
+            <!-- ホットトピック -->
+            <div class="card">
+                <div class="card-title">
+                    <span class="emoji">🔥</span>
+                    ホットトピック（過去30日）
+                </div>
+                <ul class="hot-topics-list">
+                    <li class="hot-topic-item">
+                        <span class="topic-name">アスタキサンチン UV防御</span>
+                        <span class="topic-growth">+188%</span>
+                    </li>
+                    <li class="hot-topic-item">
+                        <span class="topic-name">グルタチオン 美白</span>
+                        <span class="topic-growth">+176%</span>
+                    </li>
+                    <li class="hot-topic-item">
+                        <span class="topic-name">NAD+ 長寿</span>
+                        <span class="topic-growth">+143%</span>
+                    </li>
+                    <li class="hot-topic-item">
+                        <span class="topic-name">CoQ10 しわ改善</span>
+                        <span class="topic-growth">+125%</span>
+                    </li>
+                    <li class="hot-topic-item">
+                        <span class="topic-name">プロバイオティクス</span>
+                        <span class="topic-growth">+105%</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- トレンド予測 -->
+            <div class="card">
+                <div class="card-title">
+                    <span class="emoji">🔮</span>
+                    トレンド予測
+                </div>
+                <div class="prediction-timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-period">今後6ヶ月</div>
+                        <div class="timeline-ingredient">オメガ3・NMN</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-period">今後1年</div>
+                        <div class="timeline-ingredient">グルタチオン・NAD+</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-period">今後2年</div>
+                        <div class="timeline-ingredient">腸内環境系プロバイオティクス</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 実用化推奨成分 -->
+        <div class="card">
+            <div class="card-title">
+                <span class="emoji">💊</span>
+                実用化推奨成分TOP10
+            </div>
+            <div class="ingredient-grid">
+                <div class="ingredient-card">
+                    <div class="ingredient-name">NMN</div>
+                    <div class="ingredient-score">51件</div>
+                </div>
+                <div class="ingredient-card">
+                    <div class="ingredient-name">コラーゲン</div>
+                    <div class="ingredient-score">198件</div>
+                </div>
+                <div class="ingredient-card">
+                    <div class="ingredient-name">プロバイオティクス</div>
+                    <div class="ingredient-score">99件</div>
+                </div>
+                <div class="ingredient-card">
+                    <div class="ingredient-name">ビタミンC</div>
+                    <div class="ingredient-score">105件</div>
+                </div>
+                <div class="ingredient-card">
+                    <div class="ingredient-name">NAD+</div>
+                    <div class="ingredient-score">99件</div>
+                </div>
+                <div class="ingredient-card">
+                    <div class="ingredient-name">オートファジー</div>
+                    <div class="ingredient-score">96件</div>
+                </div>
+                <div class="ingredient-card">
+                    <div class="ingredient-name">サーチュイン</div>
+                    <div class="ingredient-score">99件</div>
+                </div>
+                <div class="ingredient-card">
+                    <div class="ingredient-name">テロメラーゼ</div>
+                    <div class="ingredient-score">91件</div>
+                </div>
+                <div class="ingredient-card">
+                    <div class="ingredient-name">ミトコンドリア</div>
+                    <div class="ingredient-score">103件</div>
+                </div>
+                <div class="ingredient-card">
+                    <div class="ingredient-name">ビタミンE</div>
+                    <div class="ingredient-score">92件</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 期間別トレンド -->
+        <div class="card">
+            <div class="card-title">
+                <span class="emoji">📈</span>
+                期間別成長率トレンド
+            </div>
+            <div class="period-selector">
+                <button class="period-btn active" onclick="updateChart('30d')">30日</button>
+                <button class="period-btn" onclick="updateChart('90d')">90日</button>
+                <button class="period-btn" onclick="updateChart('1y')">1年</button>
+                <button class="period-btn" onclick="updateChart('2y')">2年</button>
+            </div>
+            <canvas id="trendChart"></canvas>
+        </div>
+
+        <!-- 統計サマリー -->
+        <div class="card">
+            <div class="card-title">
+                <span class="emoji">📊</span>
+                データ統計
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">4,251</div>
+                    <div class="stat-label">総論文数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">1,701</div>
+                    <div class="stat-label">インナーケア関連</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">60</div>
+                    <div class="stat-label">分析キーワード</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">10年</div>
+                    <div class="stat-label">データ期間</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // チャートの初期化
+        const ctx = document.getElementById('trendChart').getContext('2d');
+        let chart;
+
+        const chartData = {
+            '30d': {
+                labels: ['アスタキサンチン', 'グルタチオン', 'NAD+', 'CoQ10', 'プロバイオティクス'],
+                data: [188, 176, 143, 125, 105]
+            },
+            '90d': {
+                labels: ['クルクミン', 'ビタミンD', 'NAD+', 'コラーゲン', 'NMN'],
+                data: [195, 174, 149, 135, 134]
+            },
+            '1y': {
+                labels: ['NMN', '亜鉛', 'ビタミンD', 'クルクミン', 'ビオチン'],
+                data: [199, 172, 164, 137, 121]
+            },
+            '2y': {
+                labels: ['NAD+', 'CoQ10', 'ビタミンC', 'ビタミンE', 'コラーゲン'],
+                data: [170, 168, 119, 116, 110]
+            }
+        };
+
+        function createChart(period) {
+            const data = chartData[period];
+
+            if (chart) {
+                chart.destroy();
+            }
+
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: '成長率 (%)',
+                        data: data.data,
+                        backgroundColor: [
+                            'rgba(102, 126, 234, 0.8)',
+                            'rgba(118, 75, 162, 0.8)',
+                            'rgba(240, 147, 251, 0.8)',
+                            'rgba(245, 87, 108, 0.8)',
+                            'rgba(250, 112, 154, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(102, 126, 234, 1)',
+                            'rgba(118, 75, 162, 1)',
+                            'rgba(240, 147, 251, 1)',
+                            'rgba(245, 87, 108, 1)',
+                            'rgba(250, 112, 154, 1)'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateChart(period) {
+            // ボタンのアクティブ状態を更新
+            document.querySelectorAll('.period-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // チャートを更新
+            createChart(period);
+        }
+
+        // 初期チャートの作成
+        createChart('30d');
+
+        // データの自動更新（実際のプロダクションでは、APIから取得）
+        setInterval(() => {
+            const hotTopics = document.querySelectorAll('.topic-growth');
+            hotTopics.forEach(topic => {
+                const currentValue = parseInt(topic.textContent);
+                const variation = Math.random() * 10 - 5; // -5 to +5
+                const newValue = Math.round(currentValue + variation);
+                topic.textContent = '+' + newValue + '%';
+            });
+        }, 30000); // 30秒ごとに更新
+    </script>
+</body>
+</html>

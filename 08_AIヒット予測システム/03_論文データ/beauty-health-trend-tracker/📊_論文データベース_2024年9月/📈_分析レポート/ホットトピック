@@ -1,0 +1,510 @@
+{
+  "30d": {
+    "period": "30d",
+    "paper_count": 51,
+    "top_topics": [
+      {
+        "name": "astaxanthin UV protection",
+        "count": 2,
+        "growth_rate": 188.16393336522134,
+        "innercare_score": 9.5
+      },
+      {
+        "name": "glutathione skin whitening",
+        "count": 1,
+        "growth_rate": 176.19187048688863,
+        "innercare_score": 9.5
+      },
+      {
+        "name": "NAD+ longevity",
+        "count": 1,
+        "growth_rate": 142.8058054273333,
+        "innercare_score": 9.5
+      },
+      {
+        "name": "coenzyme Q10 wrinkle",
+        "count": 1,
+        "growth_rate": 124.76571536665764,
+        "innercare_score": 9.5
+      },
+      {
+        "name": "probiotics skin microbiome",
+        "count": 1,
+        "growth_rate": 105.1593146920535,
+        "innercare_score": 9.5
+      },
+      {
+        "name": "curcumin anti-inflammatory skin",
+        "count": 3,
+        "growth_rate": 94.29867914323056,
+        "innercare_score": 9.0
+      },
+      {
+        "name": "vitamin D skin health",
+        "count": 1,
+        "growth_rate": 72.26880452805831,
+        "innercare_score": 9.0
+      },
+      {
+        "name": "NMN anti-aging",
+        "count": 1,
+        "growth_rate": 52.7929743168977,
+        "innercare_score": 9.0
+      },
+      {
+        "name": "mitochondrial dysfunction aging",
+        "count": 1,
+        "growth_rate": 159.07829247577826,
+        "innercare_score": 8.0
+      },
+      {
+        "name": "vitamin E skin protection",
+        "count": 3,
+        "growth_rate": 46.24784694885153,
+        "innercare_score": 8.0
+      },
+      {
+        "name": "vitamin C antioxidant",
+        "count": 1,
+        "growth_rate": 32.21284765520894,
+        "innercare_score": 8.0
+      },
+      {
+        "name": "collagen supplement skin",
+        "count": 2,
+        "growth_rate": 11.67816028275514,
+        "innercare_score": 8.0
+      },
+      {
+        "name": "collagen synthesis stimulation",
+        "count": 1,
+        "growth_rate": 51.19892235430855,
+        "innercare_score": 7.5
+      },
+      {
+        "name": "CBD inflammation",
+        "count": 1,
+        "growth_rate": 182.51381243992225,
+        "innercare_score": 6.5
+      },
+      {
+        "name": "ceramide barrier",
+        "count": 2,
+        "growth_rate": 167.70161631536882,
+        "innercare_score": 6.5
+      },
+      {
+        "name": "ultrasound skin therapy",
+        "count": 2,
+        "growth_rate": 166.00925125538546,
+        "innercare_score": 6.5
+      },
+      {
+        "name": "stem cell cosmetics",
+        "count": 1,
+        "growth_rate": 153.2734648466689,
+        "innercare_score": 6.5
+      },
+      {
+        "name": "salicylic acid acne",
+        "count": 1,
+        "growth_rate": 125.09772928216117,
+        "innercare_score": 6.5
+      },
+      {
+        "name": "platelet-rich plasma facial",
+        "count": 2,
+        "growth_rate": 110.6711380930237,
+        "innercare_score": 6.5
+      },
+      {
+        "name": "autophagy skin aging",
+        "count": 1,
+        "growth_rate": 22.945178224789025,
+        "innercare_score": 6.5
+      }
+    ],
+    "timestamp": "2025-09-24T21:54:47.265272"
+  },
+  "90d": {
+    "period": "90d",
+    "paper_count": 125,
+    "top_topics": [
+      {
+        "name": "curcumin anti-inflammatory skin",
+        "count": 3,
+        "growth_rate": 194.8198783149965,
+        "innercare_score": 9.5
+      },
+      {
+        "name": "vitamin D skin health",
+        "count": 3,
+        "growth_rate": 174.15499359716506,
+        "innercare_score": 9.5
+      },
+      {
+        "name": "NAD+ longevity",
+        "count": 1,
+        "growth_rate": 148.74764284101505,
+        "innercare_score": 9.5
+      },
+      {
+        "name": "collagen supplement skin",
+        "count": 4,
+        "growth_rate": 135.24749076347283,
+        "innercare_score": 9.5
+      },
+      {
+        "name": "NMN anti-aging",
+        "count": 3,
+        "growth_rate": 133.7858866786637,
+        "innercare_score": 9.5
+      },
+      {
+        "name": "omega-3 skin health",
+        "count": 3,
+        "growth_rate": 128.6925361672658,
+        "innercare_score": 9.5
+      },
+      {
+        "name": "astaxanthin UV protection",
+        "count": 3,
+        "growth_rate": 125.52619811247177,
+        "innercare_score": 9.5
+      },
+      {
+        "name": "probiotics skin microbiome",
+        "count": 1,
+        "growth_rate": 115.52854130125553,
+        "innercare_score": 9.5
+      },
+      {
+        "name": "biotin hair growth",
+        "count": 1,
+        "growth_rate": 100.15385846076374,
+        "innercare_score": 9.5
+      },
+      {
+        "name": "vitamin C antioxidant",
+        "count": 2,
+        "growth_rate": 93.0675329598705,
+        "innercare_score": 9.0
+      },
+      {
+        "name": "coenzyme Q10 wrinkle",
+        "count": 2,
+        "growth_rate": 86.43626835823828,
+        "innercare_score": 9.0
+      },
+      {
+        "name": "glutathione skin whitening",
+        "count": 1,
+        "growth_rate": 54.47549452494147,
+        "innercare_score": 9.0
+      },
+      {
+        "name": "telomerase anti-aging",
+        "count": 5,
+        "growth_rate": 181.15448360459436,
+        "innercare_score": 8.0
+      },
+      {
+        "name": "autophagy skin aging",
+        "count": 6,
+        "growth_rate": 177.98509464023755,
+        "innercare_score": 8.0
+      },
+      {
+        "name": "sirtuin activation aging",
+        "count": 1,
+        "growth_rate": 173.2531703182871,
+        "innercare_score": 8.0
+      },
+      {
+        "name": "zinc acne treatment",
+        "count": 3,
+        "growth_rate": 36.23673330958704,
+        "innercare_score": 8.0
+      },
+      {
+        "name": "green tea polyphenols skin",
+        "count": 1,
+        "growth_rate": 9.376554870653635,
+        "innercare_score": 8.0
+      },
+      {
+        "name": "vitamin E skin protection",
+        "count": 5,
+        "growth_rate": -14.71139940264049,
+        "innercare_score": 8.0
+      },
+      {
+        "name": "mitochondrial dysfunction aging",
+        "count": 4,
+        "growth_rate": 87.5932350219452,
+        "innercare_score": 7.5
+      },
+      {
+        "name": "collagen synthesis stimulation",
+        "count": 1,
+        "growth_rate": 55.282221157424544,
+        "innercare_score": 7.5
+      }
+    ],
+    "timestamp": "2025-09-24T21:54:47.282359"
+  },
+  "1y": {
+    "period": "1y",
+    "paper_count": 609,
+    "top_topics": [
+      {
+        "name": "NMN anti-aging",
+        "count": 8,
+        "growth_rate": 198.98094333924584,
+        "innercare_score": 9.5
+      },
+      {
+        "name": "zinc acne treatment",
+        "count": 9,
+        "growth_rate": 172.12898409882095,
+        "innercare_score": 9.5
+      },
+      {
+        "name": "vitamin D skin health",
+        "count": 8,
+        "growth_rate": 163.89701473704153,
+        "innercare_score": 9.5
+      },
+      {
+        "name": "curcumin anti-inflammatory skin",
+        "count": 15,
+        "growth_rate": 137.27272110774877,
+        "innercare_score": 9.5
+      },
+      {
+        "name": "biotin hair growth",
+        "count": 5,
+        "growth_rate": 121.12730445561317,
+        "innercare_score": 9.5
+      },
+      {
+        "name": "astaxanthin UV protection",
+        "count": 12,
+        "growth_rate": 107.25810117555966,
+        "innercare_score": 9.5
+      },
+      {
+        "name": "vitamin E skin protection",
+        "count": 14,
+        "growth_rate": 80.75909441470434,
+        "innercare_score": 9.0
+      },
+      {
+        "name": "omega-3 skin health",
+        "count": 14,
+        "growth_rate": 79.32209282691022,
+        "innercare_score": 9.0
+      },
+      {
+        "name": "green tea polyphenols skin",
+        "count": 11,
+        "growth_rate": 61.12620592909312,
+        "innercare_score": 9.0
+      },
+      {
+        "name": "mitochondrial dysfunction aging",
+        "count": 27,
+        "growth_rate": 181.11349209744307,
+        "innercare_score": 8.0
+      },
+      {
+        "name": "collagen synthesis stimulation",
+        "count": 20,
+        "growth_rate": 145.67308599626227,
+        "innercare_score": 8.0
+      },
+      {
+        "name": "NAD+ longevity",
+        "count": 7,
+        "growth_rate": 47.82658465524365,
+        "innercare_score": 8.0
+      },
+      {
+        "name": "collagen supplement skin",
+        "count": 14,
+        "growth_rate": 15.657121249519435,
+        "innercare_score": 8.0
+      },
+      {
+        "name": "probiotics skin microbiome",
+        "count": 12,
+        "growth_rate": 4.026959585900077,
+        "innercare_score": 8.0
+      },
+      {
+        "name": "glutathione skin whitening",
+        "count": 3,
+        "growth_rate": -4.046931676546697,
+        "innercare_score": 8.0
+      },
+      {
+        "name": "vitamin C antioxidant",
+        "count": 14,
+        "growth_rate": -12.995925779441812,
+        "innercare_score": 8.0
+      },
+      {
+        "name": "coenzyme Q10 wrinkle",
+        "count": 6,
+        "growth_rate": -16.01317019872923,
+        "innercare_score": 8.0
+      },
+      {
+        "name": "oxidative stress skin aging",
+        "count": 15,
+        "growth_rate": 84.05288886107584,
+        "innercare_score": 7.5
+      },
+      {
+        "name": "telomerase anti-aging",
+        "count": 11,
+        "growth_rate": 83.32858249403678,
+        "innercare_score": 7.5
+      },
+      {
+        "name": "autophagy skin aging",
+        "count": 21,
+        "growth_rate": 77.62888739076533,
+        "innercare_score": 7.5
+      }
+    ],
+    "timestamp": "2025-09-24T21:54:47.299078"
+  },
+  "2y": {
+    "period": "2y",
+    "paper_count": 1149,
+    "top_topics": [
+      {
+        "name": "NAD+ longevity",
+        "count": 20,
+        "growth_rate": 170.0231173978534,
+        "innercare_score": 9.5
+      },
+      {
+        "name": "coenzyme Q10 wrinkle",
+        "count": 9,
+        "growth_rate": 168.44884500671327,
+        "innercare_score": 9.5
+      },
+      {
+        "name": "vitamin C antioxidant",
+        "count": 25,
+        "growth_rate": 118.84496036412045,
+        "innercare_score": 9.5
+      },
+      {
+        "name": "vitamin E skin protection",
+        "count": 25,
+        "growth_rate": 115.83453542026677,
+        "innercare_score": 9.5
+      },
+      {
+        "name": "collagen supplement skin",
+        "count": 27,
+        "growth_rate": 109.52887476279574,
+        "innercare_score": 9.5
+      },
+      {
+        "name": "NMN anti-aging",
+        "count": 18,
+        "growth_rate": 106.74669703604134,
+        "innercare_score": 9.5
+      },
+      {
+        "name": "zinc acne treatment",
+        "count": 20,
+        "growth_rate": 95.03345445800124,
+        "innercare_score": 9.0
+      },
+      {
+        "name": "biotin hair growth",
+        "count": 7,
+        "growth_rate": 82.09992024814696,
+        "innercare_score": 9.0
+      },
+      {
+        "name": "glutathione skin whitening",
+        "count": 4,
+        "growth_rate": 63.96109465903356,
+        "innercare_score": 9.0
+      },
+      {
+        "name": "astaxanthin UV protection",
+        "count": 17,
+        "growth_rate": 51.0719064204456,
+        "innercare_score": 9.0
+      },
+      {
+        "name": "oxidative stress skin aging",
+        "count": 35,
+        "growth_rate": 115.6250672382485,
+        "innercare_score": 8.0
+      },
+      {
+        "name": "green tea polyphenols skin",
+        "count": 23,
+        "growth_rate": 47.24327780322113,
+        "innercare_score": 8.0
+      },
+      {
+        "name": "omega-3 skin health",
+        "count": 25,
+        "growth_rate": 45.390351223683794,
+        "innercare_score": 8.0
+      },
+      {
+        "name": "curcumin anti-inflammatory skin",
+        "count": 26,
+        "growth_rate": 36.215633945707964,
+        "innercare_score": 8.0
+      },
+      {
+        "name": "vitamin D skin health",
+        "count": 15,
+        "growth_rate": -7.869560298814559,
+        "innercare_score": 8.0
+      },
+      {
+        "name": "probiotics skin microbiome",
+        "count": 23,
+        "growth_rate": -17.22926470583094,
+        "innercare_score": 8.0
+      },
+      {
+        "name": "telomerase anti-aging",
+        "count": 19,
+        "growth_rate": 95.18102501390875,
+        "innercare_score": 7.5
+      },
+      {
+        "name": "mitochondrial dysfunction aging",
+        "count": 45,
+        "growth_rate": 85.73934153866959,
+        "innercare_score": 7.5
+      },
+      {
+        "name": "collagen synthesis stimulation",
+        "count": 33,
+        "growth_rate": 67.23730641184149,
+        "innercare_score": 7.5
+      },
+      {
+        "name": "autophagy skin aging",
+        "count": 35,
+        "growth_rate": 60.58630665638408,
+        "innercare_score": 7.5
+      }
+    ],
+    "timestamp": "2025-09-24T21:54:47.315983"
+  }
+}

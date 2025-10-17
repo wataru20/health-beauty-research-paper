@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>インナーケア・健康食品トレンド分析システム</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #333;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .card-title .emoji {
+            margin-right: 10px;
+            font-size: 1.5rem;
+        }
+
+        .hot-topics-list {
+            list-style: none;
+        }
+
+        .hot-topic-item {
+            background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+
+        .hot-topic-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .topic-name {
+            font-weight: bold;
+            flex: 1;
+        }
+
+        .topic-growth {
+            background: rgba(255,255,255,0.3);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .ingredient-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+        }
+
+        .ingredient-card {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+
+        .ingredient-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .ingredient-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .ingredient-score {
+            font-size: 1.2rem;
+        }
+
+        /* モーダル */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: white;
+            margin: 50px auto;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: slideIn 0.3s;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .modal-title {
+            font-size: 1.8rem;
+            color: #333;
+        }
+
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .detail-section {
+            margin-bottom: 25px;
+        }
+
+        .detail-section h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .detail-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .detail-label {
+            font-weight: bold;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .detail-value {
+            color: #333;
+            font-size: 1.1rem;
+        }
+
+        .evidence-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .evidence-item {
+            background: linear-gradient(90deg, #667eea10 0%, #764ba210 100%);
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .evidence-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .evidence-date {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .tab-button {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            color: #666;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+        }
+
+        .tab-button.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .prediction-detail {
+            background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .timeline-detail {
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .timeline-detail::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 10px;
+            bottom: 10px;
+            width: 2px;
+            background: #667eea;
+        }
+
+        .timeline-event {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .timeline-event::before {
+            content: '';
+            position: absolute;
+            left: -25px;
+            top: 5px;
+            width: 12px;
+            height: 12px;
+            background: #667eea;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        .research-papers {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .paper-item {
+            background: white;
+            border: 1px solid #e0e0e0;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+
+        .paper-item:hover {
+            border-color: #667eea;
+            transform: translateX(5px);
+        }
+
+        .paper-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .paper-info {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .alert-bar {
+            background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .alert-icon {
+            font-size: 1.5rem;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 20px;
+        }
+
+        .insights-box {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .insight-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .insight-icon {
+            font-size: 1.2rem;
+        }
+
+        .period-selector {
+            margin-bottom: 15px;
+        }
+
+        .period-btn {
+            padding: 6px 12px;
+            margin-right: 5px;
+            border: 1px solid #ddd;
+            border-radius: 15px;
+            background: #f0f0f0;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .period-btn.active {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        .ranking-tabs {
+            margin: 15px 0;
+        }
+
+        .ranking-btn {
+            padding: 6px 12px;
+            margin-right: 5px;
+            border: 1px solid #ddd;
+            border-radius: 15px;
+            background: #f0f0f0;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .ranking-btn.active {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌿 インナーケア・健康食品トレンド分析システム</h1>
+            <div class="subtitle">9,087件の論文データから導き出された最新トレンド</div>
+        </div>
+
+        <div class="alert-bar">
+            <div class="alert-icon">📢</div>
+            <div>
+                <strong>今月の注目トレンド</strong><br>
+                <span id="alertMessage">アスタキサンチンとNAD+関連の研究が急増中！クリックして詳細を確認してください。</span>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <!-- ホットトピック -->
+            <div class="card">
+                <div class="card-title">
+                    <span class="emoji">🔥</span>
+                    ホットトピック
+                </div>
+                <div class="period-selector">
+                    <button class="period-btn active" onclick="changePeriod('30d')">30日</button>
+                    <button class="period-btn" onclick="changePeriod('90d')">90日</button>
+                    <button class="period-btn" onclick="changePeriod('1y')">1年</button>
+                    <button class="period-btn" onclick="changePeriod('2y')">2年</button>
+                </div>
+                <div class="ranking-tabs">
+                    <button class="ranking-btn active" onclick="changeRanking('growth')">成長率順</button>
+                    <button class="ranking-btn" onclick="changeRanking('volume')">論文数順</button>
+                </div>
+                <ul class="hot-topics-list" id="hotTopicsList">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>データを読み込み中...</p>
+                    </div>
+                </ul>
+            </div>
+
+            <!-- 実用化推奨成分 -->
+            <div class="card">
+                <div class="card-title">
+                    <span class="emoji">💊</span>
+                    実用化推奨成分TOP10
+                </div>
+                <div class="period-selector">
+                    <button class="period-btn ingredient-period active" onclick="changeIngredientPeriod('30d')">30日</button>
+                    <button class="period-btn ingredient-period" onclick="changeIngredientPeriod('90d')">90日</button>
+                    <button class="period-btn ingredient-period" onclick="changeIngredientPeriod('1y')">1年</button>
+                    <button class="period-btn ingredient-period" onclick="changeIngredientPeriod('2y')">2年</button>
+                </div>
+                <div class="ingredient-grid" id="ingredientGrid">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>成分データを分析中...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 詳細モーダル -->
+    <div id="detailModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">詳細情報</h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+
+            <div class="tabs">
+                <button class="tab-button active" onclick="switchTab('overview')">概要</button>
+                <button class="tab-button" onclick="switchTab('research')">研究データ</button>
+                <button class="tab-button" onclick="switchTab('market')">市場分析</button>
+                <button class="tab-button" onclick="switchTab('prediction')">将来予測</button>
+            </div>
+
+            <div id="modalContent">
+                <!-- 動的に内容を挿入 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- データをJSファイルから読み込み（拡張版） -->
+    <script src="innercare_advanced_data.js"></script>
+    <script>
+        // 現在選択されている期間とランキング種別
+        let currentPeriod = '30d';
+        let currentRanking = 'growth';
+        let currentIngredientPeriod = '30d';
+
+        // 初期化時にアラートメッセージを更新
+        function updateAlertMessage() {
+            const alertElement = document.getElementById('alertMessage');
+            if (dataStore && dataStore.hotTopicsByPeriod && dataStore.hotTopicsByPeriod['30d'].length > 0) {
+                const topTopic = dataStore.hotTopicsByPeriod['30d'][0];
+                alertElement.textContent = `${topTopic.name}が${topTopic.growth}%の成長率を記録！クリックして詳細を確認してください。`;
+            }
+        }
+
+        // 期間を変更
+        function changePeriod(period) {
+            currentPeriod = period;
+
+            // ボタンのアクティブ状態を更新
+            document.querySelectorAll('.period-selector .period-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // ホットトピックを再表示
+            displayHotTopics();
+        }
+
+        // ランキング種別を変更
+        function changeRanking(rankingType) {
+            currentRanking = rankingType;
+
+            // ボタンのアクティブ状態を更新
+            document.querySelectorAll('.ranking-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if ((rankingType === 'growth' && btn.textContent === '成長率順') ||
+                    (rankingType === 'volume' && btn.textContent === '論文数順')) {
+                    btn.classList.add('active');
+                }
+            });
+
+            // ホットトピックを再表示
+            displayHotTopics();
+        }
+
+        // ホットトピックスを表示
+        function displayHotTopics() {
+            const container = document.getElementById('hotTopicsList');
+            container.innerHTML = '';
+
+            if (!dataStore || !dataStore.hotTopicsByPeriod) {
+                container.innerHTML = '<div class="loading">データがありません</div>';
+                return;
+            }
+
+            let topics = [...(dataStore.hotTopicsByPeriod[currentPeriod] || [])];
+
+            // ランキング種別によってソート
+            if (currentRanking === 'growth') {
+                topics.sort((a, b) => b.growth - a.growth);
+            } else {
+                topics.sort((a, b) => b.papers - a.papers);
+            }
+
+            // 上位5件のみ表示
+            topics.slice(0, 5).forEach((topic, index) => {
+                const li = document.createElement('li');
+                li.className = 'hot-topic-item';
+                li.onclick = () => showTopicDetail(topic);
+
+                if (currentRanking === 'growth') {
+                    li.innerHTML = `
+                        <span class="topic-name">${index + 1}. ${topic.name}</span>
+                        <span class="topic-growth">+${topic.growth}%</span>
+                    `;
+                } else {
+                    li.innerHTML = `
+                        <span class="topic-name">${index + 1}. ${topic.name}</span>
+                        <span class="topic-growth">${topic.papers}件</span>
+                    `;
+                }
+                container.appendChild(li);
+            });
+        }
+
+        // 成分の期間を変更
+        function changeIngredientPeriod(period) {
+            currentIngredientPeriod = period;
+
+            // ボタンのアクティブ状態を更新
+            document.querySelectorAll('.ingredient-period').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // 成分を再表示
+            displayIngredients();
+        }
+
+        // 実用化成分を表示
+        function displayIngredients() {
+            const container = document.getElementById('ingredientGrid');
+            container.innerHTML = '';
+
+            if (!dataStore || !dataStore.ingredientsByPeriod) {
+                container.innerHTML = '<div class="loading">データがありません</div>';
+                return;
+            }
+
+            const ingredients = dataStore.ingredientsByPeriod[currentIngredientPeriod] || [];
+
+            ingredients.forEach(ingredient => {
+                const div = document.createElement('div');
+                div.className = 'ingredient-card';
+
+                // 詳細モーダル用のデータを探す
+                const detailData = dataStore.ingredients?.find(ing => ing.name === ingredient.name);
+                if (detailData) {
+                    div.onclick = () => showIngredientDetail(detailData);
+                }
+
+                div.innerHTML = `
+                    <div class="ingredient-name">${ingredient.name}</div>
+                    <div class="ingredient-score">${ingredient.evidence}件</div>
+                    <div style="font-size: 0.8rem; opacity: 0.9; margin-top: 3px;">${ingredient.growth}</div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // トピック詳細を表示
+        function showTopicDetail(topic) {
+            document.getElementById('modalTitle').textContent = topic.name;
+            const modal = document.getElementById('detailModal');
+            modal.style.display = 'block';
+
+            // デフォルトで概要タブを表示
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelector('.tab-button').classList.add('active');
+
+            // コンテンツを設定
+            window.currentDetail = {
+                type: 'topic',
+                data: topic
+            };
+
+            window.currentTab = 'overview';
+            updateModalContent();
+        }
+
+        // 成分詳細を表示
+        function showIngredientDetail(ingredient) {
+            document.getElementById('modalTitle').textContent = ingredient.name;
+            const modal = document.getElementById('detailModal');
+            modal.style.display = 'block';
+
+            // デフォルトで概要タブを表示
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelector('.tab-button').classList.add('active');
+
+            // コンテンツを設定
+            window.currentDetail = {
+                type: 'ingredient',
+                data: ingredient
+            };
+
+            window.currentTab = 'overview';
+            updateModalContent();
+        }
+
+        // タブ切り替え
+        function switchTab(tabName) {
+            // タブボタンのアクティブ状態を更新
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target?.classList.add('active');
+
+            // コンテンツを更新
+            window.currentTab = tabName;
+            updateModalContent();
+        }
+
+        // モーダルコンテンツを更新
+        function updateModalContent() {
+            const container = document.getElementById('modalContent');
+            const detail = window.currentDetail;
+            const tab = window.currentTab || 'overview';
+
+            if (!detail) return;
+
+            let content = '';
+
+            if (detail.type === 'topic') {
+                const topic = detail.data;
+
+                switch(tab) {
+                    case 'overview':
+                        content = `
+                            <div class="detail-section">
+                                <h3>📊 概要</h3>
+                                <p>${topic.summary}</p>
+                            </div>
+
+                            <div class="detail-section">
+                                <h3>🔬 主要な発見</h3>
+                                <ul>
+                                    ${topic.keyFindings.map(finding => `<li>${finding}</li>`).join('')}
+                                </ul>
+                            </div>
+
+                            <div class="detail-grid">
+                                <div class="detail-item">
+                                    <div class="detail-label">成長率</div>
+                                    <div class="detail-value">+${topic.growth}%</div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-label">関連論文数</div>
+                                    <div class="detail-value">${topic.papers}件</div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-label">推奨用量</div>
+                                    <div class="detail-value">${topic.dosage}</div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-label">安全性</div>
+                                    <div class="detail-value">${topic.safety}</div>
+                                </div>
+                            </div>
+                        `;
+                        break;
+
+                    case 'research':
+                        content = `
+                            <div class="detail-section">
+                                <h3>📚 最新研究論文</h3>
+                                <div class="research-papers">
+                                    ${topic.recentPapers.map(paper => `
+                                        <div class="paper-item">
+                                            <div class="paper-title">${paper.title}</div>
+                                            <div class="paper-info">${paper.journal} - ${paper.date}</div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+
+                            <div class="detail-section">
+                                <h3>🧪 研究トレンド</h3>
+                                <div class="chart-container">
+                                    <canvas id="researchTrendChart"></canvas>
+                                </div>
+                            </div>
+                        `;
+                        setTimeout(() => createResearchChart(topic), 100);
+                        break;
+
+                    case 'market':
+                        content = `
+                            <div class="detail-section">
+                                <h3>💰 市場分析</h3>
+                                <div class="detail-item">
+                                    <div class="detail-label">市場規模</div>
+                                    <div class="detail-value">${topic.marketSize}</div>
+                                </div>
+                            </div>
+
+                            <div class="detail-section">
+                                <h3>🎯 応用分野</h3>
+                                <ul>
+                                    ${topic.applications.map(app => `<li>${app}</li>`).join('')}
+                                </ul>
+                            </div>
+
+                            <div class="insights-box">
+                                <h3>💡 マーケティングインサイト</h3>
+                                <div class="insight-item">
+                                    <span class="insight-icon">📈</span>
+                                    <span>前年比${Math.round(topic.growth * 0.7)}%の市場成長</span>
+                                </div>
+                                <div class="insight-item">
+                                    <span class="insight-icon">👥</span>
+                                    <span>主要ターゲット：30-50代女性</span>
+                                </div>
+                                <div class="insight-item">
+                                    <span class="insight-icon">🏪</span>
+                                    <span>EC販売が全体の65%を占める</span>
+                                </div>
+                            </div>
+                        `;
+                        break;
+
+                    case 'prediction':
+                        content = `
+                            <div class="detail-section">
+                                <h3>🔮 将来予測</h3>
+                                <div class="timeline-detail">
+                                    <div class="timeline-event">
+                                        <strong>3ヶ月後</strong>
+                                        <p>研究論文数が${topic.papers * 2}件に増加予測</p>
+                                    </div>
+                                    <div class="timeline-event">
+                                        <strong>6ヶ月後</strong>
+                                        <p>新製品ローンチが${Math.round(topic.growth * 0.1)}件予想</p>
+                                    </div>
+                                    <div class="timeline-event">
+                                        <strong>1年後</strong>
+                                        <p>市場規模が1.5倍に拡大見込み</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="prediction-detail">
+                                <h3>📊 成長予測グラフ</h3>
+                                <div class="chart-container">
+                                    <canvas id="predictionChart"></canvas>
+                                </div>
+                            </div>
+                        `;
+                        setTimeout(() => createPredictionChart(topic), 100);
+                        break;
+                }
+            } else if (detail.type === 'ingredient') {
+                const ingredient = detail.data;
+
+                switch(tab) {
+                    case 'overview':
+                        content = `
+                            <div class="detail-section">
+                                <h3>📊 基本情報</h3>
+                                <div class="detail-grid">
+                                    <div class="detail-item">
+                                        <div class="detail-label">エビデンス数</div>
+                                        <div class="detail-value">${ingredient.evidence}件</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="detail-label">安全性評価</div>
+                                        <div class="detail-value">${ingredient.safety}</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="detail-label">臨床試験数</div>
+                                        <div class="detail-value">${ingredient.clinicalTrials}件</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="detail-label">製品化数</div>
+                                        <div class="detail-value">${ingredient.commercialized}件</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="detail-section">
+                                <h3>💊 効果・効能</h3>
+                                <p>${ingredient.efficacy}</p>
+                            </div>
+
+                            <div class="detail-section">
+                                <h3>🔬 作用メカニズム</h3>
+                                <p>${ingredient.mechanism}</p>
+                            </div>
+                        `;
+                        break;
+
+                    case 'research':
+                        content = `
+                            <div class="detail-section">
+                                <h3>📊 研究動向</h3>
+                                <div class="chart-container">
+                                    <canvas id="ingredientTrendChart"></canvas>
+                                </div>
+                            </div>
+
+                            <div class="detail-section">
+                                <h3>🧪 臨床試験情報</h3>
+                                <div class="detail-item">
+                                    <div class="detail-label">実施済み臨床試験</div>
+                                    <div class="detail-value">${ingredient.clinicalTrials}件</div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-label">進行中の試験</div>
+                                    <div class="detail-value">${Math.round(ingredient.clinicalTrials * 0.3)}件</div>
+                                </div>
+                            </div>
+                        `;
+                        setTimeout(() => createIngredientChart(ingredient), 100);
+                        break;
+
+                    case 'market':
+                        content = `
+                            <div class="detail-section">
+                                <h3>📈 市場状況</h3>
+                                <div class="detail-item">
+                                    <div class="detail-label">製品化数</div>
+                                    <div class="detail-value">${ingredient.commercialized}製品</div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-label">市場成長率</div>
+                                    <div class="detail-value">年率${Math.round(ingredient.trends[5] / ingredient.trends[0] * 20)}%</div>
+                                </div>
+                            </div>
+
+                            <div class="insights-box">
+                                <h3>💡 商品化のポイント</h3>
+                                <div class="insight-item">
+                                    <span class="insight-icon">✅</span>
+                                    <span>エビデンスレベルが高く信頼性確保</span>
+                                </div>
+                                <div class="insight-item">
+                                    <span class="insight-icon">✅</span>
+                                    <span>安全性データが豊富</span>
+                                </div>
+                                <div class="insight-item">
+                                    <span class="insight-icon">✅</span>
+                                    <span>消費者認知度の向上中</span>
+                                </div>
+                            </div>
+                        `;
+                        break;
+
+                    case 'prediction':
+                        content = `
+                            <div class="detail-section">
+                                <h3>🔮 成長予測</h3>
+                                <div class="chart-container">
+                                    <canvas id="ingredientPredictionChart"></canvas>
+                                </div>
+                            </div>
+
+                            <div class="prediction-detail">
+                                <h3>📅 マイルストーン予測</h3>
+                                <div class="timeline-detail">
+                                    <div class="timeline-event">
+                                        <strong>2025 Q1</strong>
+                                        <p>新規製品ローンチ${Math.round(ingredient.commercialized * 0.1)}件予想</p>
+                                    </div>
+                                    <div class="timeline-event">
+                                        <strong>2025 Q2</strong>
+                                        <p>市場規模20%拡大見込み</p>
+                                    </div>
+                                    <div class="timeline-event">
+                                        <strong>2025 Q4</strong>
+                                        <p>主要ブランド参入により競争激化</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        setTimeout(() => createIngredientPredictionChart(ingredient), 100);
+                        break;
+                }
+            }
+
+            container.innerHTML = content;
+        }
+
+        // チャート作成関数
+        function createResearchChart(topic) {
+            const ctx = document.getElementById('researchTrendChart');
+            if (!ctx) return;
+
+            new Chart(ctx.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: ['2022', '2023 Q1', '2023 Q2', '2023 Q3', '2023 Q4', '2024'],
+                    datasets: [{
+                        label: '研究論文数',
+                        data: [2, 3, 4, 5, 8, topic.papers],
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        function createPredictionChart(topic) {
+            const ctx = document.getElementById('predictionChart');
+            if (!ctx) return;
+
+            new Chart(ctx.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: ['現在', '3ヶ月後', '6ヶ月後', '9ヶ月後', '12ヶ月後'],
+                    datasets: [{
+                        label: '成長率予測',
+                        data: [topic.growth, topic.growth * 1.2, topic.growth * 1.5, topic.growth * 1.7, topic.growth * 2],
+                        borderColor: '#764ba2',
+                        backgroundColor: 'rgba(118, 75, 162, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        function createIngredientChart(ingredient) {
+            const ctx = document.getElementById('ingredientTrendChart');
+            if (!ctx) return;
+
+            new Chart(ctx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['2019', '2020', '2021', '2022', '2023', '2024'],
+                    datasets: [{
+                        label: '研究論文数',
+                        data: ingredient.trends,
+                        backgroundColor: 'rgba(102, 126, 234, 0.7)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        function createIngredientPredictionChart(ingredient) {
+            const ctx = document.getElementById('ingredientPredictionChart');
+            if (!ctx) return;
+
+            const lastValue = ingredient.trends[ingredient.trends.length - 1];
+            new Chart(ctx.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: ['2024', '2025 Q1', '2025 Q2', '2025 Q3', '2025 Q4', '2026'],
+                    datasets: [{
+                        label: '予測値',
+                        data: [lastValue, lastValue * 1.1, lastValue * 1.25, lastValue * 1.4, lastValue * 1.6, lastValue * 1.8],
+                        borderColor: '#f5576c',
+                        backgroundColor: 'rgba(245, 87, 108, 0.1)',
+                        borderDash: [5, 5],
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        // モーダルを閉じる
+        function closeModal() {
+            document.getElementById('detailModal').style.display = 'none';
+        }
+
+        // ESCキーでモーダルを閉じる
+        window.onclick = function(event) {
+            const modal = document.getElementById('detailModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // 初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            // データが読み込まれたらダッシュボードを初期化
+            if (typeof dataStore !== 'undefined') {
+                console.log(`データ読み込み完了: ${dataStore.totalPapers}件の論文`);
+                updateAlertMessage();
+                displayHotTopics();
+                displayIngredients();
+
+                // サブタイトルを更新
+                document.querySelector('.subtitle').textContent = `${dataStore.totalPapers.toLocaleString()}件の論文データから導き出された最新トレンド`;
+            } else {
+                console.error('データファイルが見つかりません');
+            }
+        });
+    </script>
+</body>
+</html>
